@@ -11,8 +11,14 @@ import SwiftUI
 
 @Reducer
 struct CoffeeFeature {
+    
+    @ObservableState
     struct State: Equatable {
+        var coffeeCount = 4
         
+        mutating func decreaseCoffee() {
+            coffeeCount = max(coffeeCount - 1, 0)
+        }
     }
     
     enum Action {
@@ -33,9 +39,12 @@ struct CoffeeView: View {
     let store: StoreOf<CoffeeFeature>
     
     var body: some View {
-        WithViewStore(store, observe: { $0 }) { viewStore in
+        ScrollView {
             VStack {
-                Text("coffee view")
+                ForEach(0..<store.coffeeCount, id: \.self) { _ in
+                    Image(systemName: "cup.and.saucer.fill")
+                        .foregroundStyle(.brown)
+                }
             }
         }
     }
