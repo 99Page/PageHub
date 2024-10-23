@@ -3,9 +3,11 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        SheetToolbarView(store: Store(initialState: SheetToolbarFeature.State()) {
-            SheetToolbarFeature()
-        })
+        NavigationStack {
+            SheetToolbarView(store: Store(initialState: SheetToolbarFeature.State()) {
+                SheetToolbarFeature()
+            })
+        }
     }
 }
 

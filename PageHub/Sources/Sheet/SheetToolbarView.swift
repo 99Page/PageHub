@@ -14,7 +14,7 @@ struct SheetToolbarFeature {
     
     @ObservableState
     struct State: Equatable {
-        @Presents var coffee: CoffeeFeature.State?
+        @Presents var coffee: ColorFeature.State?
         var presentationSelection: PresentationDetent = .medium
         var coffeeViewSize: CGSize = .zero
         let presentationCandidates: Set<PresentationDetent> = [.fraction(0.1), .medium, .fraction(0.8)]
@@ -34,7 +34,7 @@ struct SheetToolbarFeature {
     }
     
     enum Action: BindableAction {
-        case coffee(PresentationAction<CoffeeFeature.Action>)
+        case coffee(PresentationAction<ColorFeature.Action>)
         case showSheetButtonTapped
         case binding(BindingAction<State>)
         case coffeeViewSizeCaculated(CGSize)
@@ -51,7 +51,7 @@ struct SheetToolbarFeature {
             case .coffee(_):
                 return .none
             case .showSheetButtonTapped:
-                state.coffee = CoffeeFeature.State()
+                state.coffee = ColorFeature.State()
                 return .none
             case .binding(_):
                 return .none
@@ -59,15 +59,23 @@ struct SheetToolbarFeature {
                 state.coffeeViewSize = size
                 return .none
             case .plusToolbarTapped:
-                state.coffee?.coffeeCount += 1
+                if state.coffee == nil {
+                    state.coffee = ColorFeature.State()
+                }
+                
+                state.coffee?.addColor()
                 return .none
             case .minusToolbarTapped:
+                if state.coffee == nil {
+                    state.coffee = ColorFeature.State()
+                }
+                
                 state.coffee?.decreaseCoffee()
                 return .none
             }
         }
         .ifLet(\.$coffee, action: \.coffee) {
-            CoffeeFeature()
+            ColorFeature()
         }
     }
 }
@@ -93,6 +101,8 @@ struct SheetToolbarView: View {
                     store.send(.coffeeViewSizeCaculated(size))
                 }
                 .presentationBackgroundInteraction(.enabled)
+        } toolbar: {
+            EmptyView()
         }
         .overlay(alignment: .bottomTrailing) {
             HStack(spacing: 10) {
