@@ -8,47 +8,74 @@
 
 import SwiftUI
 
-struct SheetToolbarViewModifier<Sheet: View, Toolbar: View>: ViewModifier {
+struct ToolbarConfig: Equatable {
+    static func == (lhs: ToolbarConfig, rhs: ToolbarConfig) -> Bool {
+        lhs.presentationDedents == rhs.presentationDedents
+        && lhs.selection == rhs.selection
+    }
     
-    @State var coffeeViewSize: CGSize = .zero
-    @Binding var presentationSelection: PresentationDetent
+    let presentationDedents: Set<PresentationDetent>
+    var selection: PresentationDetent
+    let backgroundInteraction: PresentationBackgroundInteraction
     
-    @ViewBuilder var sheet: Sheet
+    init(presentationDedents: Set<PresentationDetent>, selection: PresentationDetent, backgroundInteraction: PresentationBackgroundInteraction) {
+        var adjustivePresentationDedents: Set<PresentationDetent> = [.fraction(0.01)]
+        adjustivePresentationDedents.formUnion(presentationDedents)
+        
+        self.presentationDedents = adjustivePresentationDedents
+        self.selection = selection
+        self.backgroundInteraction = backgroundInteraction
+    }
+}
+
+struct SheetToolbarViewModifier<Item: Identifiable, Sheet: View, Toolbar: View>: ViewModifier {
+    
+    @Binding var item: Item?
+    @Binding var config: ToolbarConfig
+    
+    @ViewBuilder var sheet: (Binding<Item>) -> Sheet
     @ViewBuilder var toolbar: Toolbar
     
-    
-    let presentationCandidates: Set<PresentationDetent> = [.fraction(0.1), .medium, .fraction(0.8)]
+    @State var coffeeViewSize: CGSize = .zero
     
     func body(content: Content) -> some View {
-        ZStack(alignment: .bottom) {
-            content
-                .presentationDetents(presentationCandidates, selection: $presentationSelection)
-                .trackSize { size in
-                    coffeeViewSize = size
-                }
-                .presentationBackgroundInteraction(.enabled)
-            
-            
-            ForEach(sections: toolbar) { section in
-                let values = section.containerValues
-                let alignment = values.alignment
-                let hStackAlignment: Alignment = alignment == .trailing ? .trailing : .leading
-                
-                HStack {
-                    if hStackAlignment == .leading {
-                        Spacer()
+        content
+            .sheet(item: $item) { item in
+                sheet(item)
+                    .presentationDetents(config.presentationDedents, selection: $config.selection)
+                    .trackSize { size in
+                        coffeeViewSize = size
                     }
-                    
-                    section.content
-                    
-                    if hStackAlignment == .leading {
-                        Spacer()
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: hStackAlignment)
-                .offset(y: -coffeeViewSize.height)
+                    .presentationBackgroundInteraction(config.backgroundInteraction)
             }
-        }
+            .overlay(alignment: .bottom) {
+                ForEach(sections: toolbar) { section in
+                    let values = section.containerValues
+                    let alignment = values.alignment
+                    let hStackAlignment: Alignment = alignment == .trailing ? .trailing : .leading
+                    
+                    HStack {
+                        if hStackAlignment == .trailing {
+                            Spacer()
+                        }
+                        
+                        section.content
+                        
+                        if hStackAlignment == .leading {
+                            Spacer()
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: hStackAlignment)
+                    .offset(y: -coffeeViewSize.height)
+                    .animation(.easeInOut(duration: 0.2), value: coffeeViewSize.height)
+                }
+            }
+            .onChange(of: config.selection) { oldValue, newValue in
+                if newValue == .fraction(0.01) {
+                    item = nil
+                    config.selection = oldValue
+                }
+            }
     }
 }
 
@@ -68,6 +95,15 @@ extension View {
 enum HorizationAlignment {
     case leading
     case trailing
+}
+
+struct SheetToobarView<Content: View>: View {
+    
+    let sheetToolbarGroup: () -> SheetToolbarGroup<Content>
+    
+    var body: some View {
+        sheetToolbarGroup()
+    }
 }
 
 struct SheetToolbarGroup<Content: View>: View {

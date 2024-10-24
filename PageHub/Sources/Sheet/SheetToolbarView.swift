@@ -15,29 +15,18 @@ struct SheetToolbarFeature {
     @ObservableState
     struct State: Equatable {
         @Presents var coffee: ColorFeature.State?
-        var presentationSelection: PresentationDetent = .medium
-        var coffeeViewSize: CGSize = .zero
-        let presentationCandidates: Set<PresentationDetent> = [.fraction(0.1), .medium, .fraction(0.8)]
         
-        /// 포켓몬 리스트 뷰가 나타날 때 버튼의 오프셋
-        var bottomButtonOffset: CGFloat {
-            let buttonToSheetBottomOffset: CGFloat = 10
-            guard isCoffeeSheetPresented else { return 0 }
-            
-            return -coffeeViewSize.height - buttonToSheetBottomOffset
-            
-        }
-        
-        var isCoffeeSheetPresented: Bool {
-            coffee != nil
-        }
+        var toolbarConfig = ToolbarConfig(
+            presentationDedents: [.medium, .fraction(0.9)],
+            selection: .medium,
+            backgroundInteraction: .enabled
+        )
     }
     
     enum Action: BindableAction {
         case coffee(PresentationAction<ColorFeature.Action>)
         case showSheetButtonTapped
         case binding(BindingAction<State>)
-        case coffeeViewSizeCaculated(CGSize)
         case plusToolbarTapped
         case minusToolbarTapped
         
@@ -54,9 +43,6 @@ struct SheetToolbarFeature {
                 state.coffee = ColorFeature.State()
                 return .none
             case .binding(_):
-                return .none
-            case let .coffeeViewSizeCaculated(size):
-                state.coffeeViewSize = size
                 return .none
             case .plusToolbarTapped:
                 if state.coffee == nil {
@@ -91,39 +77,32 @@ struct SheetToolbarView: View {
             } label: {
                 Text("Show sheet")
             }
-            
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .sheet(item: $store.scope(state: \.coffee, action: \.coffee)) { coffeeStore in
-            CoffeeView(store: coffeeStore)
-                .presentationDetents(store.presentationCandidates, selection: $store.presentationSelection)
-                .trackSize { size in
-                    store.send(.coffeeViewSizeCaculated(size))
-                }
-                .presentationBackgroundInteraction(.enabled)
+        .sheet(config: $store.toolbarConfig, item: $store.scope(state: \.coffee, action: \.coffee)) { coffeeStore in
+            CoffeeView(store: coffeeStore.wrappedValue)
         } toolbar: {
-            EmptyView()
-        }
-        .overlay(alignment: .bottomTrailing) {
-            HStack(spacing: 10) {
-                Button {
-                    store.send(.plusToolbarTapped)
-                } label: {
-                    Image(systemName: "plus.circle")
-                        .resizable()
-                        .frame(width: 30, height: 30)
+            SheetToolbarGroup(alignment: .trailing) {
+                HStack(spacing: 10) {
+                    Button {
+                        store.send(.plusToolbarTapped)
+                    } label: {
+                        Image(systemName: "plus.circle")
+                            .resizable()
+                            .frame(width: 30, height: 30)
+                    }
+                    
+                    Button {
+                        store.send(.minusToolbarTapped)
+                    } label: {
+                        Image(systemName: "minus.circle")
+                            .resizable()
+                            .frame(width: 30, height: 30)
+                    }
                 }
-                
-                Button {
-                    store.send(.minusToolbarTapped)
-                } label: {
-                    Image(systemName: "minus.circle")
-                        .resizable()
-                        .frame(width: 30, height: 30)
-                }
+                .padding(.trailing, 10)
+                .padding(.bottom, 10)
             }
-            .offset(y: store.bottomButtonOffset)
-            .padding(.trailing, 10)
         }
     }
 }
