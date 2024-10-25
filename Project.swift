@@ -11,10 +11,11 @@ let infoPlist: [String: Plist.Value] = [
 let deploymentTarget: DeploymentTargets = .multiplatform(iOS: "18.0")
 let destinations: Destinations = [.iPad, .iPhone, .macWithiPadDesign]
 
+let appName = "PageHub"
 let appBundleId = "com.page.pagehub"
 
 let target = Target.target(
-    name: "PageHub",
+    name: appName,
     destinations: destinations,
     product: .app,
     bundleId: appBundleId,
@@ -23,31 +24,36 @@ let target = Target.target(
     sources: ["PageHub/Sources/**"],
     resources: ["PageHub/Resources/**"],
     dependencies: [
-        .package(product: "ComposableArchitecture")
+        .package(product: "ComposableArchitecture"),
+        .package(product: "FirebaseCore")
     ]
 )
 
 let testTarget = Target.target(
-    name: "PageHubTests",
+    name: "\(appName)Tests",
     destinations: destinations,
     product: .unitTests,
     bundleId: "\(appBundleId).test",
     deploymentTargets: deploymentTarget,
     sources: ["PageHub/Tests/**"],
     dependencies: [
-        .target(name: "PageHub")
+        .target(name: "PageHub"),
     ]
 )
 
 let tcaURL = "https://github.com/pointfreeco/swift-composable-architecture.git"
 let tcaVersion: Package.Requirement = .upToNextMajor(from: "1.13.0")
 
+let firebaseURL = "https://github.com/firebase/firebase-ios-sdk.git"
+let firebaseVersion: Package.Requirement = .upToNextMajor(from: "11.4")
+
 
 let project = Project(
-    name: "PageHub",
+    name: appName,
     organizationName: "Page",
     packages: [
         .remote(url: tcaURL, requirement: tcaVersion),
+        .remote(url: firebaseURL, requirement: firebaseVersion)
     ],
     settings: nil,
     targets: [target, testTarget]
