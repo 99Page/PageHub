@@ -11,11 +11,13 @@ let infoPlist: [String: Plist.Value] = [
 let deploymentTarget: DeploymentTargets = .multiplatform(iOS: "18.0")
 let destinations: Destinations = [.iPad, .iPhone, .macWithiPadDesign]
 
+let appBundleId = "com.page.pagehub"
+
 let target = Target.target(
     name: "PageHub",
     destinations: destinations,
     product: .app,
-    bundleId: "com.page.hub",
+    bundleId: appBundleId,
     deploymentTargets: deploymentTarget,
     infoPlist: .extendingDefault(with: infoPlist),
     sources: ["PageHub/Sources/**"],
@@ -29,7 +31,7 @@ let testTarget = Target.target(
     name: "PageHubTests",
     destinations: destinations,
     product: .unitTests,
-    bundleId: "com.page.hub.tests",
+    bundleId: "\(appBundleId).test",
     deploymentTargets: deploymentTarget,
     sources: ["PageHub/Tests/**"],
     dependencies: [
