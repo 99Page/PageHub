@@ -25,7 +25,9 @@ let target = Target.target(
     resources: ["PageHub/Resources/**"],
     dependencies: [
         .package(product: "ComposableArchitecture"),
-        .package(product: "FirebaseCore")
+        .package(product: "FirebaseCore"),
+        .package(product: "FirebaseFirestore"),
+        .package(product: "GoogleSignIn")
     ]
 )
 
@@ -47,13 +49,17 @@ let tcaVersion: Package.Requirement = .upToNextMajor(from: "1.13.0")
 let firebaseURL = "https://github.com/firebase/firebase-ios-sdk.git"
 let firebaseVersion: Package.Requirement = .upToNextMajor(from: "11.4")
 
+let googleSignInURL = "https://github.com/google/GoogleSignIn-iOS.git"
+let googleSignInVersion: Package.Requirement = .upToNextMajor(from: "8.0.0")
+
 
 let project = Project(
     name: appName,
     organizationName: "Page",
     packages: [
         .remote(url: tcaURL, requirement: tcaVersion),
-        .remote(url: firebaseURL, requirement: firebaseVersion)
+        .remote(url: firebaseURL, requirement: firebaseVersion),
+        .remote(url: googleSignInURL, requirement: googleSignInVersion)
     ],
     settings: nil,
     targets: [target, testTarget]
