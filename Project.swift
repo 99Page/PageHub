@@ -27,7 +27,8 @@ let target = Target.target(
         .package(product: "ComposableArchitecture"),
         .package(product: "FirebaseCore"),
         .package(product: "FirebaseFirestore"),
-        .package(product: "GoogleSignIn")
+        .package(product: "GoogleSignIn"),
+        .package(product: "FirebaseAuth")
     ]
 )
 

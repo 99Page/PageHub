@@ -23,15 +23,12 @@ struct SheetToolbarFeature {
         )
     }
     
-    @Dependency(\.codeService) var codeService
-    
     enum Action: BindableAction {
         case coffee(PresentationAction<ColorFeature.Action>)
         case showSheetButtonTapped
         case binding(BindingAction<State>)
         case plusToolbarTapped
         case minusToolbarTapped
-        
     }
     
     var body: some ReducerOf<Self> {
@@ -52,9 +49,7 @@ struct SheetToolbarFeature {
                 }
                 
                 state.coffee?.addColor()
-                return .run { send in
-                    await codeService.saveCode()
-                }
+                return .none
             case .minusToolbarTapped:
                 if state.coffee == nil {
                     state.coffee = ColorFeature.State()
