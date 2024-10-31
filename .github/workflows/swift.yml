@@ -32,6 +32,6 @@ jobs:
         curl -sL https://firebase.tools | bash
         
         # Firebase CLI를 사용하여 CI 환경에서 로그인
-        firebase login:ci --no-localhost
+        firebase login:ci
         y
         ${{ secrets.FIREBSAE_TOKEN }}
