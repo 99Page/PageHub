@@ -1,10 +1,17 @@
 import ProjectDescription
 
+
 let infoPlist: [String: Plist.Value] = [
     "CFBundleShortVersionString": "1.0",
     "CFBundleVersion": "1",
     "UIMainStoryboardFile": "",
-    "UILaunchStoryboardName": "LaunchScreen"
+    "UILaunchStoryboardName": "LaunchScreen",
+    "CFBundleURLTypes": [
+        "CFBundleTypeRole": "Editor",
+        "CFBundleURLSchemes": [
+            "com.googleusercontent.apps.754260062806-hiqu60ubfs2g1kir79tpdefvj3707ggl"
+        ]
+    ]
 ]
 
 
