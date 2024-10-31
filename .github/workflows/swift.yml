@@ -31,8 +31,8 @@ jobs:
       run: |
         curl -sL https://firebase.tools | bash
         
-        # Firebase CLI를 사용하여 CI 환경에서 인증 (브라우저 없이)
-        firebase auth:ci --token "${{ secrets.FIREBASE_TOKEN }}"
+        # Firebase CLI를 사용하여 CI 환경에서 로그인
+        firebase login:ci --token "${{ secrets.FIREBASE_TOKEN }}"
         
         # 프로젝트 설정 확인
         firebase projects:list
