@@ -15,9 +15,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Install Google Cloud CLI SDK + Cloud init
+    - name: Create Google Cloud Key File
+      run: |
+        echo "${{ secrets.PAGEHUB_SERVICE }}" > /service-account-key.json
+    
+    - name: Install Google Cloud CLI SDK
       run: |
         curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-darwin-x86_64.tar.gz
         tar -xf google-cloud-cli-darwin-x86_64.tar.gz
         ./google-cloud-sdk/install.sh
-        ./google-cloud-sdk/bin/gcloud init
+        ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=/service-account-key.json
