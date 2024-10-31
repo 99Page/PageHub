@@ -1,0 +1,22 @@
+# This workflow will build a Swift project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-swift
+
+name: Google Cloud Setup
+
+on:
+  push:
+    branches:
+      - 'chore/**'  # chore/ 하위 브랜치에 푸시될 때 실행
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Google Cloud SDK
+      run: |
+        curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-darwin-x86_64.tar.gz
+        tar -xf google-cloud-cli-darwin-x86_64.tar.gz
+        ./google-cloud-sdk/bin/gcloud init
