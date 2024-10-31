@@ -15,7 +15,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Install Google Cloud CLI SDK
+    - name: Install Google Cloud CLI SDK 2
       run: |
         curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-darwin-x86_64.tar.gz
         tar -xf google-cloud-cli-darwin-x86_64.tar.gz
+        ./google-cloud-sdk/install.sh
+        y
