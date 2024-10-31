@@ -10,9 +10,22 @@ import ComposableArchitecture
 import SwiftUI
 
 @Reducer
-struct CoffeeFeature {
+struct ColorFeature {
+    
+    @ObservableState
     struct State: Equatable {
+        var colors: [Color] = [.red]
         
+        mutating func addColor() {
+            let colorCandidates: [Color] = [.red, .blue, .orange, .purple, .pink, .brown, .cyan]
+            let newColor = colorCandidates.randomElement() ?? .blue
+            
+            colors.append(newColor)
+        }
+        
+        mutating func decreaseCoffee() {
+            colors.removeLast()
+        }
     }
     
     enum Action {
@@ -30,19 +43,29 @@ struct CoffeeFeature {
 
 struct CoffeeView: View {
     
-    let store: StoreOf<CoffeeFeature>
+    let store: StoreOf<ColorFeature>
+    
+    let columns: [GridItem] = [
+        GridItem(.flexible()),
+        GridItem(.flexible()),
+        GridItem(.flexible())
+    ]
     
     var body: some View {
-        WithViewStore(store, observe: { $0 }) { viewStore in
-            VStack {
-                Text("coffee view")
+        ScrollView {
+            LazyVGrid(columns: columns, spacing: 20) {
+                ForEach(0..<store.colors.count, id: \.self) { index in
+                    Circle()
+                        .fill(store.colors[index])
+                        .frame(width: 30, height: 30)
+                }
             }
         }
     }
 }
 
 #Preview {
-    CoffeeView(store: Store(initialState: CoffeeFeature.State()) {
-        CoffeeFeature()
+    CoffeeView(store: Store(initialState: ColorFeature.State()) {
+        ColorFeature()
     })
 }
