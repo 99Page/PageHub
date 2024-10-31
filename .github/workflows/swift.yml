@@ -17,7 +17,7 @@ jobs:
     
     - name: Create Google Cloud Key File
       run: |
-        echo "${{ secrets.ENCODED_PAGEHUB_SERVICE }}" | base64 --decode > /tmp/service-account-key.json
+        echo "${{ secrets.PAGEHUB_SERVICE }}" | base64 --decode > /tmp/service-account-key.json
     
     - name: Install Google Cloud CLI SDK
       run: |
