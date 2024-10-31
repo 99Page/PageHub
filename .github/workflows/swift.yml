@@ -26,3 +26,13 @@ jobs:
         ./google-cloud-sdk/install.sh
         cat /tmp/service-account-key.json
         ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=/tmp/service-account-key.json
+        
+    - name: Install Firebase CLI SDK
+      run: |
+        curl -sL https://firebase.tools | bash
+        
+        # Firebase CLI를 사용하여 CI 환경에서 인증 (브라우저 없이)
+        firebase auth:ci --token "${{ secrets.FIREBASE_TOKEN }}"
+        
+        # 프로젝트 설정 확인
+        firebase projects:list
