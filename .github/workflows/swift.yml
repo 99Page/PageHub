@@ -39,3 +39,8 @@ jobs:
         firebase projects:list
         
         firebase deploy --only firestore
+        
+        # API 호출 확인
+        curl -X GET \
+        "https://firestore.googleapis.com/v1/projects/pagehub-886db/databases/(default)/documents/FeatureCode/code111" \
+        -H "Authorization: Bearer $(gcloud auth application-default print-access-token)"
