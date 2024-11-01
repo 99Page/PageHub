@@ -30,7 +30,6 @@ jobs:
         echo "$(pwd)/google-cloud-sdk/bin" >> $GITHUB_PATH
         
         ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=/tmp/service-account-key.json
-        ./google-cloud-sdk/bin/gcloud auth application-default set-service-account firebase-adminsdk-f023u@pagehub-886db.iam.gserviceaccount.com
         
     - name: Install Firebase CLI SDK
       env:
@@ -48,4 +47,4 @@ jobs:
         # API 호출 확인
         curl -X GET \
         "https://firestore.googleapis.com/v1/projects/pagehub-886db/databases/(default)/documents/FeatureCode/code111" \
-        -H "Authorization: Bearer $(gcloud auth application-default print-access-token)"
+        -H "Authorization: Bearer $(./google-cloud-sdk/bin/gcloud auth print-access-token)"
