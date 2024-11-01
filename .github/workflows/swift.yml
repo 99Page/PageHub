@@ -34,5 +34,7 @@ jobs:
       run: |
         echo "$FIREBASE_SERVICE_KEY" | base64 --decode > /tmp/firebase-key.json 
         curl -sL https://firebase.tools | bash
-        firebase use --add pagehub-886db
-        firebase deploy --only firestore
+        
+        # 로그인 확인
+        firebase projects:list
+        
