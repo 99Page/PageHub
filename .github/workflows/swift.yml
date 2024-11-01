@@ -15,8 +15,36 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Install Google Cloud SDK
+    - name: Create Google Cloud Key File
+      run: |
+        echo "${{ secrets.PAGEHUB_SERVICE }}" | base64 --decode > /tmp/service-account-key.json
+    
+    - name: Install Google Cloud CLI SDK
       run: |
         curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-darwin-x86_64.tar.gz
         tar -xf google-cloud-cli-darwin-x86_64.tar.gz
-        ./google-cloud-sdk/bin/gcloud init
+        ./google-cloud-sdk/install.sh
+        cat /tmp/service-account-key.json
+        
+        # 환경 변수 PATH에 Google Cloud SDK 경로 추가
+        echo "$(pwd)/google-cloud-sdk/bin" >> $GITHUB_PATH
+        
+        ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=/tmp/service-account-key.json
+        
+    - name: Install Firebase CLI SDK
+      env:
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        FIREBASE_SERVICE_KEY: ${{ secrets.FIREBASE_SERVICE_KEY}}
+      run: |
+        echo "$FIREBASE_SERVICE_KEY" | base64 --decode > /tmp/firebase-key.json 
+        curl -sL https://firebase.tools | bash
+        
+        # 로그인 확인. 실행안될 경우 Firebase token 확인, *firebase login:ci
+        firebase projects:list
+        
+        firebase deploy --only firestore
+        
+        # API 호출 확인
+        curl -X GET \
+        "https://firestore.googleapis.com/v1/projects/pagehub-886db/databases/(default)/documents/FeatureCode/code111" \
+        -H "Authorization: Bearer $(./google-cloud-sdk/bin/gcloud auth print-access-token)"
