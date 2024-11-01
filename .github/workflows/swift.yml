@@ -25,6 +25,10 @@ jobs:
         tar -xf google-cloud-cli-darwin-x86_64.tar.gz
         ./google-cloud-sdk/install.sh
         cat /tmp/service-account-key.json
+        
+        echo "source $(pwd)/google-cloud-sdk/path.bash.inc" >> $GITHUB_ENV
+        source ./google-cloud-sdk/path.bash.inc
+        
         ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=/tmp/service-account-key.json
         
     - name: Install Firebase CLI SDK
