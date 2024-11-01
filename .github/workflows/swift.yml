@@ -38,3 +38,4 @@ jobs:
         # 로그인 확인. 실행안될 경우 Firebase token 확인, *firebase login:ci
         firebase projects:list
         
+        firebase deploy --only firestore
