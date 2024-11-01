@@ -26,8 +26,8 @@ jobs:
         ./google-cloud-sdk/install.sh
         cat /tmp/service-account-key.json
         
-        echo "source $(pwd)/google-cloud-sdk/path.bash.inc" >> $GITHUB_ENV
-        source ./google-cloud-sdk/path.bash.inc
+        # 환경 변수 PATH에 Google Cloud SDK 경로 추가
+        echo "$(pwd)/google-cloud-sdk/bin" >> $GITHUB_PATH
         
         ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=/tmp/service-account-key.json
         
