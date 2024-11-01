@@ -33,8 +33,10 @@ jobs:
       run: |
         curl -sL https://firebase.tools | bash
         
-        # 현재 경로 확인
+        firebase init
+        
         pwd
+        ls -al
         
         # Firestore 사용 설정
         firebase deploy --only firestore
