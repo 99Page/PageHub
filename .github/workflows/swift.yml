@@ -32,11 +32,4 @@ jobs:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
       run: |
         curl -sL https://firebase.tools | bash
-        
-        firebase init
-        
-        pwd
-        ls -al
-        
-        # Firestore 사용 설정
         firebase deploy --only firestore
