@@ -30,7 +30,7 @@ jobs:
         echo "$(pwd)/google-cloud-sdk/bin" >> $GITHUB_PATH
         
         ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=/tmp/service-account-key.json
-        ./google-cloud-sdk/bin/gcloud auth application-default login --key-file=/tmp/service-account-key.json
+        ./google-cloud-sdk/bin/gcloud auth application-default set-service-account firebase-adminsdk-f023u@pagehub-886db.iam.gserviceaccount.com
         
     - name: Install Firebase CLI SDK
       env:
