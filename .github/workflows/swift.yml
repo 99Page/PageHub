@@ -35,3 +35,6 @@ jobs:
         
         # Firebase CLI를 사용하여 CI 환경에서 로그인
         firebase init
+        
+        # Firestore 사용 설정
+        firebase deploy --only firestore
