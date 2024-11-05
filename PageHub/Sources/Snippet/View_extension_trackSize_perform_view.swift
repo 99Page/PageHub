@@ -23,8 +23,3 @@ extension View {
             .onPreferenceChange(SizePreferenceKey.self, perform: perform)
     }
 }
-
-struct SizePreferenceKey: PreferenceKey {
-    static var defaultValue: CGSize = .zero
-    static func reduce(value: inout CGSize, nextValue: () -> CGSize) { }
-}

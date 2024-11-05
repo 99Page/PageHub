@@ -1,8 +1,8 @@
 //
-//  View + sheet.swift
+//  View+sheet.swift
 //  PageHub
 //
-//  Created by 노우영 on 10/23/24.
+//  Created by 노우영 on 11/1/24.
 //  Copyright © 2024 Page. All rights reserved.
 //
 
@@ -29,5 +29,3 @@ extension View {
             )
     }
 }
-
-
