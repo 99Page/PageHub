@@ -1,0 +1,40 @@
+
+# .github/actions/setup-google-firebase/action.yml
+name: "Setup Google Cloud and Firebase CLI"
+description: "Installs Google Cloud SDK and Firebase CLI, authenticates, and deploys to Firestore."
+inputs:
+  GOOGLE_CLOUD_SERVICE_KEY:
+    description: "Google Cloud service account key in base64."
+    required: true
+  FIREBASE_SERVICE_KEY:
+    description: "Firebase service account key in base64."
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Create Google Cloud Key File
+      shell: bash
+      run: |
+        echo "${{ inputs.GOOGLE_CLOUD_SERVICE_KEY }}" | base64 --decode > /tmp/service-account-key.json
+
+    - name: Install Google Cloud CLI SDK
+      shell: bash
+      run: |
+        curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-darwin-x86_64.tar.gz
+        tar -xf google-cloud-cli-darwin-x86_64.tar.gz
+        ./google-cloud-sdk/install.sh
+        
+        # Add Google Cloud SDK to PATH
+        echo "$(pwd)/google-cloud-sdk/bin" >> $GITHUB_PATH
+
+        # Authenticate with Google Cloud
+        ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=/tmp/service-account-key.json
+
+    - name: Create Firebase Key File
+      shell: bash
+      run: | 
+        echo "${{ inputs.FIREBASE_SERVICE_KEY }}" | base64 --decode > /tmp/firebase-key.json
+        curl -sL https://firebase.tools | bash
+        firebase projects:list
+        firebase deploy --only firestore
