@@ -45,11 +45,6 @@ jobs:
         
         firebase deploy --only firestore
         
-        # API 호출 확인
-        curl -X GET \
-        "https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/FeatureCode/code111" \
-        -H "Authorization: Bearer $(./google-cloud-sdk/bin/gcloud auth print-access-token)"
-        
     - name: Update Firestore with Modified Snippets
       env:
         SNIPPET_COLLECTION: ${{ secrets.SWIFTUI_SNIPPET_COLLECTION }}
@@ -105,7 +100,7 @@ jobs:
                     "stringValue": "'"${CODE}"'"
                   }
                 }
-              }'
+              }' || exit 1
 
               echo "Document updated with PATCH."
 
@@ -121,7 +116,7 @@ jobs:
                     "stringValue": "'"${CODE}"'"
                   }
                 }
-              }'
+              }' || exit 1
 
               echo "Document created with POST."
             fi
