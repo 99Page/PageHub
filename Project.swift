@@ -32,7 +32,10 @@ let target = Target.target(
     deploymentTargets: deploymentTarget,
     infoPlist: .extendingDefault(with: infoPlist),
     sources: ["PageHub/Sources/**"],
-    resources: ["PageHub/Resources/**"],
+    resources: [
+        "PageHub/Resources/**",
+        "Documentation/**"
+    ],
     dependencies: [
         .package(product: "ComposableArchitecture"),
         .package(product: "FirebaseCore"),
