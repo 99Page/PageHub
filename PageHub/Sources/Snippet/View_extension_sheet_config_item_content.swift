@@ -8,8 +8,32 @@
 
 import SwiftUI
 
-
 extension View {
+    ///
+    /// ```
+    ///struct HowToUse: View {
+    ///
+    ///    @State var config = ToolbarConfig(presentationDedents: [.large], selection: .large, backgroundInteraction: .enabled)
+    ///    @State var item: Int = 0
+    ///
+    ///
+    ///    var body: some View {
+    ///        VStack {
+    ///
+    ///        }
+    ///        .sheet(config: $config, item: $item) { item in
+    ///            ItemView(item)
+    ///        } toolbar: {
+    ///            SheetToolbarGroup(alignment: .trailing) {
+    ///                Button("Increase") {
+    ///                    item += 1
+    ///                }
+    ///            }
+    ///        }
+    ///
+    ///    }
+    ///}
+    /// ```
     func sheet<Item, Content, T>(
         config: Binding<ToolbarConfig>,
         item: Binding<Item?>,

@@ -11,7 +11,6 @@ import SwiftUI
 
 @Reducer
 struct SheetToolbarFeature {
-    
     @ObservableState
     struct State: Equatable {
         @Presents var coffee: ColorFeature.State?
