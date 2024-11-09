@@ -3,7 +3,7 @@ name: "Upload or Update Firestore Documents"
 description: "Uploads or updates Firestore documents based on changed files."
 inputs:
   FILES:
-    description: "A multi-line string containing file paths to upload to Firestore, each path on a new line."
+    description: "A multi-line string containing file paths to upload to Firestore, each path on a new line. Note: Multiple lines cannot be passed via env, so FILES is passed as an input instead."
     required: true 
 
 runs:
