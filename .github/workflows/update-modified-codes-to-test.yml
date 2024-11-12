@@ -64,14 +64,14 @@ jobs:
         echo "FIRESTORE_SNIPPETS_DOCUMENT=$FIRESTORE_SNIPPETS_DOCUMENT" >> $GITHUB_ENV
         
         # 변경된 FEATURE 정보를 저장합니다.
-        CHANGED_FEATURE_MAPPING_FILES=$(git diff --name-only origin/main $GITHUB_SHA | grep "^PageHub/Resources/FeatureSnippetMap" || true)
+        FEATURE_MAPPING_FILES=$(git diff --name-only origin/main $GITHUB_SHA | grep "^PageHub/Resources/FeatureSnippetMap" || true)
         
-        if [ -z "$CHANGED_FEATURE_MAPPING_FILES"; then 
+        if [ -z "$FEATURE_MAPPING_FILES"; then 
           echo "No changes detected in PageHub/Resources/FeatureSnippetMap."
         else 
-          echo "Changed feature map: $CHANGED_FEATURE_MAPPING_FILES"
-          echo "CHANGED_FEATURE_MAPPING_FILES<<EOF" >> $GITHUB_ENV
-          echo "$CHANGED_FEATURE_MAPPING_FILES" >> $GITHUB_ENV
+          echo "Changed feature map: $FEATURE_MAPPING_FILES"
+          echo "FEATURE_MAPPING_FILES<<EOF" >> $GITHUB_ENV
+          echo "$FEATURE_MAPPING_FILES" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
         fi
 
