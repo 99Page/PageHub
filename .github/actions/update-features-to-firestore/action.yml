@@ -33,9 +33,8 @@ runs:
 
 
             # URL 구성
-            FIRESTORE_GET_PATCH_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_FEATURES_COLLECTION/$FEATURE_KEY/$MIN_IOS_VERSION?/$FIRESTORE_SNIPPETS_DOCUMENT"
+            FIRESTORE_GET_PATCH_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_FEATURES_COLLECTION/$FEATURE_KEY/$MIN_IOS_VERSION/$FIRESTORE_SNIPPETS_DOCUMENT"
             FIRESTORE_POST_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_FEATURES_COLLECTION/$FEATURE_KEY/$MIN_IOS_VERSION?documentId=$FIRESTORE_SNIPPETS_DOCUMENT"
-            echo "URL: $URL"
 
             # Check if feature information exists in Firestore
 
