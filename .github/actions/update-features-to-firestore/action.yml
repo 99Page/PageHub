@@ -23,11 +23,12 @@ runs:
         for FILE in $FEATURE_MAPPING_FILES; do 
           if [ -f "$FILE" ]; then 
 
-            jq -r 'to_entries[] | "\(.key) \(.value | @json)"' $FILE | while read -r KEY ARRAY_JSON; do
-            # KEY의 첫 글자를 소문자로 변환하여 FEATURE_KEY에 할당
+          jq -c 'to_entries[] | {key: .key, value: .value}' "$FILE" | while IFS=$'\n' read -r ENTRY; do
+            KEY=$(echo "$ENTRY" | jq -r '.key')
+            ARRAY_JSON=$(echo "$ENTRY" | jq -c '.value')
 
             FEATURE_KEY=$(echo "$KEY" | awk '{print tolower(substr($0,1,1)) substr($0,2)}')
-            export FEATURE_KEY  # FEATURE_KEY 환경 변수로 설정
+            export FEATURE_KEY
             echo "Key: $FEATURE_KEY"
             echo "Value: $ARRAY_JSON"
 
