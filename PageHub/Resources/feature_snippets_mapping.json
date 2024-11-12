@@ -1,13 +1,13 @@
 {
-    "SheetToolbarView": [
-        "ContainerValues_extension_alignment",
-        "HorizontalAlignment",
-        "SheetToolbarGroup",
-        "SheetToolbarViewModifier",
-        "SizePreferenceKey",
-        "ToolbarConfig",
-        "View_extension_containerForegroundColor_alignment_view",
-        "View_extension_sheet_config_item_content",
-        "View_extension_trackSize_perform_view"
+    "sheetToolbarView": [
+        "containerValues_extension_alignment",
+        "horizontalAlignment",
+        "sheetToolbarGroup",
+        "sheetToolbarViewModifier",
+        "sizePreferenceKey",
+        "toolbarConfig",
+        "view_extension_containerForegroundColor_alignment_view",
+        "view_extension_sheet_config_item_content",
+        "view_extension_trackSize_perform_view"
     ]
 }
