@@ -49,7 +49,7 @@ runs:
             if [ "$RESPONSE" -eq 200 ]; then
               # Call the PATCH API if feature information is found
               curl -X PATCH \
-              -H "Authorization: Bearer $ACCESS_TOKEN" \ 
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
               -H "Content-Type: application/json" \
               "$FIRESTORE_GET_PATCH_URL" \
                -d '{
@@ -60,7 +60,7 @@ runs:
                       }
                     }
                   }
-                }'
+                }' || exit 1
             else 
               # Call the POST API if feature information is not found
               curl -X POST \
