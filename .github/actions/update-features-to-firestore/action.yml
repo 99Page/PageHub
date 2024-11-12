@@ -12,32 +12,48 @@ runs:
         FIRESTORE_TEST_FEATURES_COLLECTION: ${{ env.FIRESTORE_TEST_FEATURES_COLLECTION }}
         FIRESTORE_SNIPPETS_DOCUMENT: ${{ env.FIRESTORE_SNIPPETS_DOCUMENT }}
         MIN_IOS_VERSION: ${{ env.MIN_IOS_VERSION }}
+       
+        # 변경된 FEATURE 매핑의 파일들의 목록을 디렉토리 위치를 포함한 정보
+        FEATURE_MAPPING_FILES: ${{ env.FEATURE_MAPPING_FILES }}
 
       run: |
-        jq -r 'to_entries[] | "\(.key) \(.value | @json)"' PageHub/Resources/feature_snippets_mapping.json | while read -r KEY ARRAY_JSON; do
-        # KEY의 첫 글자를 소문자로 변환하여 FEATURE_KEY에 할당
+        # \n을 기준으로 파일 목록을 분리합니다. 
+        IFS=$'\n'
+        
+        for FILE in $FEATURE_MAPPING_FILES; do 
+          if [ -f "$FILE" ]; then 
 
-        FEATURE_KEY=$(echo "$KEY" | awk '{print tolower(substr($0,1,1)) substr($0,2)}')
-        export FEATURE_KEY  # FEATURE_KEY 환경 변수로 설정
-        echo "Key: $FEATURE_KEY"
-        echo "Value: $ARRAY_JSON"
+            jq -r 'to_entries[] | "\(.key) \(.value | @json)"' $FILE | while read -r KEY ARRAY_JSON; do
+            # KEY의 첫 글자를 소문자로 변환하여 FEATURE_KEY에 할당
 
-        # URL 구성
-        URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_FEATURES_COLLECTION/$FEATURE_KEY/$MIN_IOS_VERSION?documentId=$FIRESTORE_SNIPPETS_DOCUMENT"
-        echo "URL: $URL"
+            FEATURE_KEY=$(echo "$KEY" | awk '{print tolower(substr($0,1,1)) substr($0,2)}')
+            export FEATURE_KEY  # FEATURE_KEY 환경 변수로 설정
+            echo "Key: $FEATURE_KEY"
+            echo "Value: $ARRAY_JSON"
 
-        # Firestore에 배열 업로드
-        curl -X POST \
-          -H "Authorization: Bearer $ACCESS_TOKEN" \
-          -H "Content-Type: application/json" \
-          "$URL" \
-          -d '{
-            "fields": {
-              "arrayField": {
-                "arrayValue": {
-                  "values": '"$(echo "$ARRAY_JSON" | jq '[.[] | {stringValue: .}]')"'
+            # URL 구성
+            URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_FEATURES_COLLECTION/$FEATURE_KEY/$MIN_IOS_VERSION?documentId=$FIRESTORE_SNIPPETS_DOCUMENT"
+            echo "URL: $URL"
+
+            # Firestore에 배열 업로드
+            curl -X POST \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "Content-Type: application/json" \
+              "$URL" \
+              -d '{
+                "fields": {
+                  "arrayField": {
+                    "arrayValue": {
+                      "values": '"$(echo "$ARRAY_JSON" | jq '[.[] | {stringValue: .}]')"'
+                    }
+                  }
                 }
-              }
-            }
-          }'
-        done
+             }'
+            done
+            
+          else 
+            echo "File $FILE does not exist." 
+
+                
+
+

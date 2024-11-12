@@ -62,6 +62,18 @@ jobs:
 
         echo "FIRESTORE_TEST_FEATURES_COLLECTION=$FIRESTORE_TEST_FEATURES_COLLECTION" >> $GITHUB_ENV
         echo "FIRESTORE_SNIPPETS_DOCUMENT=$FIRESTORE_SNIPPETS_DOCUMENT" >> $GITHUB_ENV
+        
+        # 변경된 FEATURE 정보를 저장합니다.
+        CHANGED_FEATURE_MAPPING_FILES=$(git diff --name--onley origin/main $GITHUB_SHA | grep "^PageHub/Resources/FeatureSnippetMap" || true)
+        
+        if [ -z "$CHANGED_FEATURE_MAPPING_FILES"; then 
+          echo "No changes detected in PageHub/Resources/FeatureSnippetMap."
+        else 
+          echo "Changed feature map: $CHANGED_FEATURE_MAPPING_FILES"
+          echo "CHANGED_FEATURE_MAPPING_FILES<<EOF" >> $GITHUB_ENV
+          echo "$CHANGED_FEATURE_MAPPING_FILES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+        fi
 
     - name: Call 
       uses: ./.github/actions/upload-snippets-to-firestore
