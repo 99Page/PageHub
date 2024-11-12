@@ -53,7 +53,7 @@ runs:
             
           else 
             echo "File $FILE does not exist." 
-
+          fi
         done
 
 
