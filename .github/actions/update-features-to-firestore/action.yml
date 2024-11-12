@@ -48,11 +48,14 @@ runs:
                     }
                   }
                 }
-             }'
+              }'
             done
             
           else 
             echo "File $FILE does not exist." 
+
+        done
+
 
                 
 
