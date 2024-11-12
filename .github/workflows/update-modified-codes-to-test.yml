@@ -79,16 +79,16 @@ jobs:
         URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_FEATURES_COLLECTION/$FEATURE_KEY/$MIN_IOS_VERSION?documentId=$FIRESTORE_SNIPPETS_DOCUMENT"
         echo "URL: $URL"
 
-          # Firestore에 배열 업로드
-          curl -X POST \
-            -H "Authorization: Bearer $ACCESS_TOKEN" \
-            -H "Content-Type: application/json" \
-            "$URL" \
-            -d '{
+        # Firestore에 배열 업로드
+        curl -X POST \
+          -H "Authorization: Bearer $ACCESS_TOKEN" \
+          -H "Content-Type: application/json" \
+          "$URL" \
+          -d '{
             "fields": {
               "arrayField": {
                 "arrayValue": {
-                  "values": '"$ARRAY_JSON"'
+                  "values": '"$(echo "$ARRAY_JSON" | jq '[.[] | {stringValue: .}]')"'
                 }
               }
             }
