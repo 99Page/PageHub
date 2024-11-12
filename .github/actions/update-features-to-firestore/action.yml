@@ -1,0 +1,90 @@
+name: "Update Snippet Codes"
+description: "Uploads or updates Firestore snippets based on changed files."
+runs:
+  using: "composite"
+  steps:
+    - name: Process and Upload Files to Firestore
+      shell: bash
+      env:
+        ACCESS_TOKEN: ${{ env.ACCESS_TOKEN }}
+        FIREBASE_PROJECT_ID: ${{ env.FIREBASE_PROJECT_ID }}
+        FIRESTORE_TEST_FEATURES_COLLECTION: ${{ env.FIRESTORE_TEST_FEATURES_COLLECTION }}
+        FIRESTORE_SNIPPETS_DOCUMENT: ${{ env.FIRESTORE_SNIPPETS_DOCUMENT }}
+        MIN_IOS_VERSION: ${{ env.MIN_IOS_VERSION }}
+       
+        # 변경된 FEATURE 매핑의 파일들의 목록을 디렉토리 위치를 포함한 정보
+        FEATURE_MAPPING_FILES: ${{ env.FEATURE_MAPPING_FILES }}
+
+      run: |
+        # \n을 기준으로 파일 목록을 분리합니다. 
+        IFS=$'\n'
+        
+        for FILE in $FEATURE_MAPPING_FILES; do 
+          if [ -f "$FILE" ]; then 
+
+          jq -c 'to_entries[] | {key: .key, value: .value}' "$FILE" | while IFS=$'\n' read -r ENTRY; do
+            KEY=$(echo "$ENTRY" | jq -r '.key')
+            ARRAY_JSON=$(echo "$ENTRY" | jq -c '.value')
+
+            FEATURE_KEY=$(echo "$KEY" | awk '{print tolower(substr($0,1,1)) substr($0,2)}')
+            export FEATURE_KEY
+            echo "Key: $FEATURE_KEY"
+            echo "Value: $ARRAY_JSON"
+
+
+            # URL 구성
+            FIRESTORE_GET_PATCH_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_FEATURES_COLLECTION/$FEATURE_KEY/$MIN_IOS_VERSION/$FIRESTORE_SNIPPETS_DOCUMENT"
+            FIRESTORE_POST_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_FEATURES_COLLECTION/$FEATURE_KEY/$MIN_IOS_VERSION?documentId=$FIRESTORE_SNIPPETS_DOCUMENT"
+
+            # Check if feature information exists in Firestore
+
+            RESPONSE=$(curl -s \
+              -o /dev/null \
+              -w "%{http_code}" \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              "$FIRESTORE_GET_PATCH_URL")
+
+            echo "Response: $RESPONSE"
+
+            if [ "$RESPONSE" -eq 200 ]; then
+              # Call the PATCH API if feature information is found
+              curl -X PATCH \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "Content-Type: application/json" \
+              "$FIRESTORE_GET_PATCH_URL" \
+               -d '{
+                  "fields": {
+                    "arrayField": {
+                      "arrayValue": {
+                        "values": '"$(echo "$ARRAY_JSON" | jq '[.[] | {stringValue: .}]')"'
+                      }
+                    }
+                  }
+                }' || exit 1
+            else 
+              # Call the POST API if feature information is not found
+              curl -X POST \
+                -H "Authorization: Bearer $ACCESS_TOKEN" \
+                -H "Content-Type: application/json" \
+                "$FIRESTORE_POST_URL" \
+                -d '{
+                  "fields": {
+                    "arrayField": {
+                      "arrayValue": {
+                        "values": '"$(echo "$ARRAY_JSON" | jq '[.[] | {stringValue: .}]')"'
+                      }
+                    }
+                  }
+                }'
+            fi
+            done
+            
+          else 
+            echo "File $FILE does not exist." 
+          fi
+        done
+
+
+                
+
+

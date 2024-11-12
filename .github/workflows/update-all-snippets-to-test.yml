@@ -50,6 +50,6 @@ jobs:
         echo "FIRESTORE_CODEDETAILS_DOCUMENT=$FIRESTORE_CODEDETAILS_DOCUMENT" >> $GITHUB_ENV
 
     - name: Call 
-      uses: ./.github/actions/upload-to-firestore
+      uses: ./.github/actions/upload-snippets-to-firestore
       with:
         FILES: ${{ env.CHANGED_FILES }}
