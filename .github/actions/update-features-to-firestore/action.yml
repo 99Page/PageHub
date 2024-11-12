@@ -1,6 +1,5 @@
-# .github/actions/upload-to-firestore/action.yml
-name: "Upload or Update Firestore Documents"
-description: "Uploads or updates Firestore documents based on changed files."
+name: "Update Snippet Codes"
+description: "Uploads or updates Firestore snippets based on changed files."
 runs:
   using: "composite"
   steps:
@@ -32,24 +31,53 @@ runs:
             echo "Key: $FEATURE_KEY"
             echo "Value: $ARRAY_JSON"
 
+
             # URL 구성
-            URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_FEATURES_COLLECTION/$FEATURE_KEY/$MIN_IOS_VERSION?documentId=$FIRESTORE_SNIPPETS_DOCUMENT"
+            FIRESTORE_GET_PATCH_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_FEATURES_COLLECTION/$FEATURE_KEY/$MIN_IOS_VERSION?/$FIRESTORE_SNIPPETS_DOCUMENT"
+            FIRESTORE_POST_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_FEATURES_COLLECTION/$FEATURE_KEY/$MIN_IOS_VERSION?documentId=$FIRESTORE_SNIPPETS_DOCUMENT"
             echo "URL: $URL"
 
-            # Firestore에 배열 업로드
-            curl -X POST \
+            # Check if feature information exists in Firestore
+
+            RESPONSE=$(curl -s \
+              -o /dev/null \
+              -w "%{http_code}" \
               -H "Authorization: Bearer $ACCESS_TOKEN" \
+              "$FIRESTORE_GET_PATCH_URL")
+
+            echo "Response: $RESPONSE"
+
+            if [ "$RESPONSE" -eq 200 ]; then
+              # Call the PATCH API if feature information is found
+              curl -X PATCH \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \ 
               -H "Content-Type: application/json" \
-              "$URL" \
-              -d '{
-                "fields": {
-                  "arrayField": {
-                    "arrayValue": {
-                      "values": '"$(echo "$ARRAY_JSON" | jq '[.[] | {stringValue: .}]')"'
+              "$FIRESTORE_GET_PATCH_URL" \
+               -d '{
+                  "fields": {
+                    "arrayField": {
+                      "arrayValue": {
+                        "values": '"$(echo "$ARRAY_JSON" | jq '[.[] | {stringValue: .}]')"'
+                      }
                     }
                   }
-                }
-              }'
+                }'
+            else 
+              # Call the POST API if feature information is not found
+              curl -X POST \
+                -H "Authorization: Bearer $ACCESS_TOKEN" \
+                -H "Content-Type: application/json" \
+                "$FIRESTORE_POST_URL" \
+                -d '{
+                  "fields": {
+                    "arrayField": {
+                      "arrayValue": {
+                        "values": '"$(echo "$ARRAY_JSON" | jq '[.[] | {stringValue: .}]')"'
+                      }
+                    }
+                  }
+                }'
+            fi
             done
             
           else 
