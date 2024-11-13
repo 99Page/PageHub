@@ -1,0 +1,54 @@
+name: "Update Subsnippets to Firestore"
+runs:
+  using: "composite"
+  steps:
+    - name: Process and Upload Files to Firestore
+      shell: bash
+      env:
+        ACCESS_TOKEN: ${{ env.ACCESS_TOKEN }}
+        FIREBASE_PROJECT_ID: ${{ env.FIREBASE_PROJECT_ID }}
+        FIRESTORE_SNIPPETS_COLLECTION: ${{ env.FIRESTORE_SNIPPETS_COLLECTION }}
+        MIN_IOS_VERSION: ${{ env.MIN_IOS_VERSION }}
+       
+        # A list of files containing information about the sub-snippets to be updated, including their directory paths
+        SUBSNIPPET_MAP_FILES: ${{ env.SUBSNIPPET_MAP_FILES }}
+
+      run: |
+        # Splits the file list based on ‘\n’.
+        IFS=$'\n'
+        
+        for FILE in $SUBSNIPPET_MAP_FILES; do 
+          if [ -f "$FILE" ]; then 
+            SNIPPET=$(echo "$FILE" | sed -E 's|.*/||; s|\.json$||' | awk '{print tolower(substr($0,1,1)) substr($0,2)}')
+
+            echo "Snippet name is $SNIPPET"
+
+            FIRESTORE_SNIPPET_READ_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_SNIPPETS_COLLECTION/$SNIPPET/$MIN_IOS_VERSION"
+
+            echo "GET URL: $FIRESTORE_SNIPPET_READ_URL"
+
+
+            # Check if the sub-snippet to be updated exists
+            RESPONSE=$(curl -s \
+              -o /dev/null \
+              -w "%{http_code}" \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              "$FIRESTORE_SNIPPET_READ_URL")
+
+            if [ "$RESPONSE" -eq 200 ]; then
+              echo "The given snippet exist"
+
+            else
+              echo "The given snippet does not exist"
+              exit 1
+            fi
+
+          else 
+            echo "File $FILE does not exist." 
+          fi
+        done
+
+
+                
+
+
