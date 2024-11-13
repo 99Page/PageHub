@@ -21,6 +21,8 @@ jobs:
 
         FIRESTORE_CODEDETAILS_DOCUMENT: ${{ secrets.FIRESTORE_CODEDETAILS_DOCUMENT }}
         FIRESTORE_SNIPPETS_DOCUMENT: ${{ secrets.FIRESTORE_SNIPPETS_DOCUMENT }}
+        FIRESTORE_SUBSNIPPETS_DOCUMENT: ${{ secrets.FIRESTORE_SUBSNIPPETS_DOCUMENT }}
+
 
     steps:
     - uses: actions/checkout@v4
@@ -82,3 +84,24 @@ jobs:
 
     - name: Update Firestore with Features
       uses: ./.github/actions/update-features-to-firestore
+
+    - name: Set Up Environment Values for Update Subsnippet
+      run: |
+        echo "FIRESTORE_SNIPPETS_COLLECTION=$FIRESTORE_TEST_SNIPPETS_COLLECTION" >> $GITHUB_ENV
+        SUBSNIPPET_MAP_FILES=$(git diff --name-only origin/main $GITHUB_SHA | grep "^PageHub/Resources/SubsnippetMap" || true)
+
+        echo "FIRESTORE_SUBSNIPPETS_DOCUMENT=$FIRESTORE_SUBSNIPPETS_DOCUMENT" >> $GITHUB_ENV
+
+        if [ -z "$SUBSNIPPET_MAP_FILES" ]; then 
+          echo "No changes detected in PageHub/Resources/SubsnippetMap."
+        else 
+          echo "Changed feature map: $SUBSNIPPET_MAP_FILES"
+          echo "SUBSNIPPET_MAP_FILES<<EOF" >> $GITHUB_ENV
+          echo "$SUBSNIPPET_MAP_FILES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+        fi
+
+
+    - name: Update Subsnippet
+      uses: ./.github/actions/update-subsnippets-to-firestore
+      
