@@ -21,6 +21,8 @@ jobs:
 
         FIRESTORE_CODEDETAILS_DOCUMENT: ${{ secrets.FIRESTORE_CODEDETAILS_DOCUMENT }}
         FIRESTORE_SNIPPETS_DOCUMENT: ${{ secrets.FIRESTORE_SNIPPETS_DOCUMENT }}
+        FIRESTORE_SUBSNIPPETS_DOCUMENT: ${{ secrets.FIRESTORE_SUBSNIPPETS_DOCUMENT }}
+
 
     steps:
     - uses: actions/checkout@v4
@@ -87,6 +89,8 @@ jobs:
       run: |
         echo "FIRESTORE_SNIPPETS_COLLECTION=$FIRESTORE_TEST_SNIPPETS_COLLECTION" >> $GITHUB_ENV
         SUBSNIPPET_MAP_FILES=$(git diff --name-only origin/main $GITHUB_SHA | grep "^PageHub/Resources/SubsnippetMap" || true)
+
+        echo "FIRESTORE_SUBSNIPPETS_DOCUMENT=$FIRESTORE_SUBSNIPPETS_DOCUMENT" >> $GITHUB_ENV
 
         if [ -z "$SUBSNIPPET_MAP_FILES" ]; then 
           echo "No changes detected in PageHub/Resources/SubsnippetMap."
