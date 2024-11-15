@@ -1,7 +1,7 @@
 name: Update designated Snippet to Test
 
 on:
-  workflow_dispatch
+  workflow_dispatch:
     inputs:
       SNIPEPT_PATH:
         description: 'Path of the snippet file to be updated'
