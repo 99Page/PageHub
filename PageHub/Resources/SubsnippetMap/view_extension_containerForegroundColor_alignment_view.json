@@ -1,5 +1,6 @@
 {
     "subsnippets": [
-        "horizontalAlignment"
+        "horizontalAlignment",
+        "containerValues_extension_alignment"
     ]
 }

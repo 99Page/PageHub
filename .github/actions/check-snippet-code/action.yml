@@ -23,49 +23,61 @@ runs:
         # \n을 기준으로 파일 목록을 분리합니다. 
         IFS=$'\n'
 
+        VISITED_SNIPPETS="visitied.snippets.txt"
+        touch $VISITED_SNIPPETS
+      
+
+        # Define a function to process snippets recursively
+        process_snippet() {
+          local SNIPPET="$1"
+
+          if grep -q "^$SNIPPET$" "$VISITED_SNIPPETS"; then 
+           # Skip already visited snippet
+           return 
+          fi 
+
+          # Mark the snippet as visited
+          echo "$SNIPPET" >> "$VISITED_SNIPPETS"
+
+          CODE_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$SNIPPET/$MIN_IOS_VERSION/$FIRESTORE_CODEDETAILS_DOCUMENT"
+          SUBSNIPPETS_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$SNIPPET/$MIN_IOS_VERSION/$FIRESTORE_SUBSNIPPETS_DOCUMENT"
+
+          
+          # Fetch code
+          SNIPPET_RESPONSE=$(curl -s \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            "$CODE_URL")
+          
+          # Extract 'code' and append it to Testing.swift
+          CODE=$(echo "$SNIPPET_RESPONSE" | jq -r '.fields.code.stringValue')
+          if [ -n "$CODE" ]; then
+            echo "$CODE" >> Testing.swift
+          fi
+
+          # Fetch subsnippet
+          SNIPPET_RESPONSE=$(curl -s \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            "$SUBSNIPPETS_URL")
+
+          # Extract 'subsnippets' if they exist
+          SUBSNIPPETS=($(echo "$SNIPPET_RESPONSE" | jq -r '.. | .stringValue? // empty'))
+         
+          # Process each subsnippet recursively
+          for SUBSNIPPET in "${SUBSNIPPETS[@]}"; do
+            process_snippet "$SUBSNIPPET"
+          done
+        }
+
         for FILE in $FILES; do
           if [ -f "$FILE" ]; then
-            echo "Contents of $FILE without comments:"
+
+            > Testing.swift
 
             DOCUMENT=$(echo "$FILE" | sed -E 's|.*/||; s|\.swift$||' | awk '{print tolower(substr($0,1,1)) substr($0,2)}')
-            echo "Document name is $DOCUMENT"
 
-            CODE=$(sed '/^\/\//d' "$FILE")
+            process_snippet $DOCUMENT
 
-            FIRESTORE_READ_CODE_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$DOCUMENT/$MIN_IOS_VERSION/$FIRESTORE_CODEDETAILS_DOCUMENT"
-
-            FIRESTORE_READ_SUBSNIPPETS_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$DOCUMENT/$MIN_IOS_VERSION/$FIRESTORE_SUBSNIPPETS_DOCUMENT"
-
-            CODE_RESPONSE=$(curl -s \
-              -H "Authorization: Bearer $ACCESS_TOKEN" \
-              "$FIRESTORE_READ_CODE_URL")
-
-            
-            # Extract 'stringValue' of 'code'
-            CODE_VALUE=$(echo "$CODE_RESPONSE" | jq -r '.fields.code.stringValue')
-            echo "$CODE_VALUE" > Testing.swift 
-
-            SUBSNIPPETS_RESPONSE=$(curl -s \
-              -H "Authorization: Bearer $ACCESS_TOKEN" \
-              "$FIRESTORE_READ_SUBSNIPPETS_URL")
-
-            echo "Subsnippets response $SUBSNIPPETS_RESPONSE"
-
-            SUBSNIPPETS=($(echo "$SUBSNIPPETS_RESPONSE" | jq -r '.. | .stringValue? // empty'))
-
-            for SUBSNIPPET in "${SUBSNIPPETS[@]}"; do 
-              FIRESTORE_READ_SUBSNIPPET_CODE_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$SUBSNIPPET/$MIN_IOS_VERSION/$FIRESTORE_CODEDETAILS_DOCUMENT"
-
-              SUBSNIPPET_CODE_RESPONSE=$(curl -s \
-                -H "Authorization: Bearer $ACCESS_TOKEN" \
-                "$FIRESTORE_READ_SUBSNIPPET_CODE_URL")
-            
-              # Extract 'stringValue' of 'code'
-              SUBSNIPPET_CODE_VALUE=$(echo "$SUBSNIPPET_CODE_RESPONSE" | jq -r '.fields.code.stringValue')
-              echo "$SUBSNIPPET_CODE_VALUE" >> Testing.swift
-            done 
-
-            cat Testing.swift
+            echo "[Testing.swift file] $(cat Testing.swift)"
 
             swiftc Testing.swift -o TestingExecutable
 
