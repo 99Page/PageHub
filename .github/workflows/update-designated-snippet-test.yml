@@ -3,7 +3,7 @@ name: Update designated Snippet to Test
 on:
   workflow_dispatch:
     inputs:
-      SNIPEPT_PATH:
+      SNIPPET_PATH:
         description: 'Path of the snippet file to be updated'
         required: true 
       MIN_IOS_VERSION:
@@ -12,7 +12,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-15
     env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         FIREBASE_SERVICE_KEY: ${{ secrets.FIREBASE_SERVICE_KEY }}
@@ -20,6 +20,7 @@ jobs:
         
         FIRESTORE_TEST_SNIPPETS_COLLECTION: ${{ secrets.FIRESTORE_TEST_SNIPPETS_COLLECTION }}
         FIRESTORE_CODEDETAILS_DOCUMENT: ${{ secrets.FIRESTORE_CODEDETAILS_DOCUMENT }}
+        FIRESTORE_SUBSNIPPETS_DOCUMENT: ${{ secrets.FIRESTORE_SUBSNIPPETS_DOCUMENT }}
         
 
     steps:
@@ -45,4 +46,14 @@ jobs:
     - name: Update Snippets to Firestore
       uses: ./.github/actions/upload-snippets-to-firestore 
       with: 
+        FILES: ${{ github.event.inputs.SNIPPET_PATH }}
+
+    - name: Set Up Environment Variables to Check Snippet Codes
+      run: |
+        echo "FIREBASE_SNIPPETS_COLLECTION=$FIRESTORE_TEST_SNIPPETS_COLLECTION" >> $GITHUB_ENV
+        echo "FIRESTORE_SUBSNIPPETS_DOCUMENT=$FIRESTORE_SUBSNIPPETS_DOCUMENT" >> $GITHUB_ENV
+
+    - name: Check Updated Snippet Codes
+      uses: ./.github/actions/check-snippet-code
+      with:
         FILES: ${{ github.event.inputs.SNIPPET_PATH }}

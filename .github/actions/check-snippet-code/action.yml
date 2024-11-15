@@ -1,0 +1,88 @@
+name: "Check Updated Snippet Codes"
+description: "Uploads or updates Firestore snippets based on changed files."
+inputs:
+  FILES:
+    description: "A multi-line string containing file paths to upload to Firestore, each path on a new line. Note: Multiple lines cannot be passed via env, so FILES is passed as an input instead."
+    required: true 
+
+runs:
+  using: "composite"
+  steps:
+    - name: Process and Upload Files to Firestore
+      shell: bash
+      env:
+        ACCESS_TOKEN: ${{ env.ACCESS_TOKEN }}
+        FIREBASE_PROJECT_ID: ${{ env.FIREBASE_PROJECT_ID }}
+        FIRESTORE_SNIPPETS_COLLECTION: ${{ env.FIRESTORE_SNIPPETS_COLLECTION }}
+        FIRESTORE_CODEDETAILS_DOCUMENT: ${{ env.FIRESTORE_CODEDETAILS_DOCUMENT }}
+        FIRESTORE_SUBSNIPPETS_DOCUMENT: ${{ env.FIRESTORE_SUBSNIPPETS_DOCUMENT }} 
+        MIN_IOS_VERSION: ${{ env.MIN_IOS_VERSION }}
+        FILES: ${{ inputs.FILES }}
+
+      run: |
+        # \n을 기준으로 파일 목록을 분리합니다. 
+        IFS=$'\n'
+
+        for FILE in $FILES; do
+          if [ -f "$FILE" ]; then
+            echo "Contents of $FILE without comments:"
+
+            DOCUMENT=$(echo "$FILE" | sed -E 's|.*/||; s|\.swift$||' | awk '{print tolower(substr($0,1,1)) substr($0,2)}')
+            echo "Document name is $DOCUMENT"
+
+            CODE=$(sed '/^\/\//d' "$FILE")
+
+            FIRESTORE_READ_CODE_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$DOCUMENT/$MIN_IOS_VERSION/$FIRESTORE_CODEDETAILS_DOCUMENT"
+
+            FIRESTORE_READ_SUBSNIPPETS_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$DOCUMENT/$MIN_IOS_VERSION/$FIRESTORE_SUBSNIPPETS_DOCUMENT"
+
+            CODE_RESPONSE=$(curl -s \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              "$FIRESTORE_READ_CODE_URL")
+
+            
+            # Extract 'stringValue' of 'code'
+            CODE_VALUE=$(echo "$CODE_RESPONSE" | jq -r '.fields.code.stringValue')
+            echo "$CODE_VALUE" > Testing.swift 
+
+            SUBSNIPPETS_RESPONSE=$(curl -s \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              "$FIRESTORE_READ_SUBSNIPPETS_URL")
+
+            echo "Subsnippets response $SUBSNIPPETS_RESPONSE"
+
+            SUBSNIPPETS=($(echo "$SUBSNIPPETS_RESPONSE" | jq -r '.. | .stringValue? // empty'))
+
+            for SUBSNIPPET in "${SUBSNIPPETS[@]}"; do 
+              FIRESTORE_READ_SUBSNIPPET_CODE_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$SUBSNIPPET/$MIN_IOS_VERSION/$FIRESTORE_CODEDETAILS_DOCUMENT"
+
+              SUBSNIPPET_CODE_RESPONSE=$(curl -s \
+                -H "Authorization: Bearer $ACCESS_TOKEN" \
+                "$FIRESTORE_READ_SUBSNIPPET_CODE_URL")
+            
+              # Extract 'stringValue' of 'code'
+              SUBSNIPPET_CODE_VALUE=$(echo "$SUBSNIPPET_CODE_RESPONSE" | jq -r '.fields.code.stringValue')
+              echo "$SUBSNIPPET_CODE_VALUE" >> Testing.swift
+            done 
+
+            cat Testing.swift
+
+            swiftc Testing.swift -o TestingExecutable
+
+            if [ $? -ne 0 ]; then
+              echo "❌ Compilation failed. Stopping CI/CD."
+              exit 1
+            fi
+
+            # Run the compiled executable
+            echo "✅ Compilation succeeded. Running the compiled TestingExecutable..."
+            ./TestingExecutable
+            if [ $? -ne 0 ]; then
+              echo "❌ Execution failed. Stopping CI/CD."
+              exit 1
+            fi
+
+          else
+            echo "File $FILE does not exist."
+          fi
+        done
