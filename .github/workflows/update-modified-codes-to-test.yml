@@ -104,4 +104,16 @@ jobs:
 
     - name: Update Subsnippet
       uses: ./.github/actions/update-subsnippets-to-firestore
+
+    - name: Set Up Environment Values for Check Snippet Code
+      run: |
+        echo "FIRESTORE_SNIPPETS_COLLECTION=$FIRESTORE_TEST_SNIPPETS_COLLECTION" >> $GITHUB_ENV
+        echo "FIRESTORE_CODEDETAILS_DOCUMENT=$FIRESTORE_CODEDETAILS_DOCUMENT" >> $GITHUB_ENV
+        echo "FIRESTORE_SUBSNIPPETS_DOCUMENT=$FIRESTORE_SUBSNIPPETS_DOCUMENT" >> $GITHUB_ENV
+
+    - name: Check Update Snippet Codes 
+      uses: ./.github/actions/check-snippet-code
+      with: 
+        FILES: ${{ env.CHANGED_FILES }}
+    
       

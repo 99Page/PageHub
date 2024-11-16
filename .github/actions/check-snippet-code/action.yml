@@ -1,0 +1,100 @@
+name: "Check Updated Snippet Codes"
+description: "Uploads or updates Firestore snippets based on changed files."
+inputs:
+  FILES:
+    description: "A multi-line string containing file paths to upload to Firestore, each path on a new line. Note: Multiple lines cannot be passed via env, so FILES is passed as an input instead."
+    required: true 
+
+runs:
+  using: "composite"
+  steps:
+    - name: Process and Upload Files to Firestore
+      shell: bash
+      env:
+        ACCESS_TOKEN: ${{ env.ACCESS_TOKEN }}
+        FIREBASE_PROJECT_ID: ${{ env.FIREBASE_PROJECT_ID }}
+        FIRESTORE_SNIPPETS_COLLECTION: ${{ env.FIRESTORE_SNIPPETS_COLLECTION }}
+        FIRESTORE_CODEDETAILS_DOCUMENT: ${{ env.FIRESTORE_CODEDETAILS_DOCUMENT }}
+        FIRESTORE_SUBSNIPPETS_DOCUMENT: ${{ env.FIRESTORE_SUBSNIPPETS_DOCUMENT }} 
+        MIN_IOS_VERSION: ${{ env.MIN_IOS_VERSION }}
+        FILES: ${{ inputs.FILES }}
+
+      run: |
+        # \n을 기준으로 파일 목록을 분리합니다. 
+        IFS=$'\n'
+
+        VISITED_SNIPPETS="visitied.snippets.txt"
+        touch $VISITED_SNIPPETS
+      
+
+        # Define a function to process snippets recursively
+        process_snippet() {
+          local SNIPPET="$1"
+
+          if grep -q "^$SNIPPET$" "$VISITED_SNIPPETS"; then 
+           # Skip already visited snippet
+           return 
+          fi 
+
+          # Mark the snippet as visited
+          echo "$SNIPPET" >> "$VISITED_SNIPPETS"
+
+          CODE_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$SNIPPET/$MIN_IOS_VERSION/$FIRESTORE_CODEDETAILS_DOCUMENT"
+          SUBSNIPPETS_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$SNIPPET/$MIN_IOS_VERSION/$FIRESTORE_SUBSNIPPETS_DOCUMENT"
+
+          
+          # Fetch code
+          SNIPPET_RESPONSE=$(curl -s \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            "$CODE_URL")
+          
+          # Extract 'code' and append it to Testing.swift
+          CODE=$(echo "$SNIPPET_RESPONSE" | jq -r '.fields.code.stringValue')
+          if [ -n "$CODE" ]; then
+            echo "$CODE" >> Testing.swift
+          fi
+
+          # Fetch subsnippet
+          SNIPPET_RESPONSE=$(curl -s \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            "$SUBSNIPPETS_URL")
+
+          # Extract 'subsnippets' if they exist
+          SUBSNIPPETS=($(echo "$SNIPPET_RESPONSE" | jq -r '.. | .stringValue? // empty'))
+         
+          # Process each subsnippet recursively
+          for SUBSNIPPET in "${SUBSNIPPETS[@]}"; do
+            process_snippet "$SUBSNIPPET"
+          done
+        }
+
+        for FILE in $FILES; do
+          if [ -f "$FILE" ]; then
+
+            > Testing.swift
+
+            DOCUMENT=$(echo "$FILE" | sed -E 's|.*/||; s|\.swift$||' | awk '{print tolower(substr($0,1,1)) substr($0,2)}')
+
+            process_snippet $DOCUMENT
+
+            echo "[Testing.swift file] $(cat Testing.swift)"
+
+            swiftc Testing.swift -o TestingExecutable
+
+            if [ $? -ne 0 ]; then
+              echo "❌ Compilation failed. Stopping CI/CD."
+              exit 1
+            fi
+
+            # Run the compiled executable
+            echo "✅ Compilation succeeded. Running the compiled TestingExecutable..."
+            ./TestingExecutable
+            if [ $? -ne 0 ]; then
+              echo "❌ Execution failed. Stopping CI/CD."
+              exit 1
+            fi
+
+          else
+            echo "File $FILE does not exist."
+          fi
+        done
