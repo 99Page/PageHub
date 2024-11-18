@@ -49,6 +49,7 @@ runs:
 
             if [ "$RESPONSE" -eq 200 ]; then
               curl -X PATCH \
+              -f \
               -H "Authorization: Bearer $ACCESS_TOKEN" \
               -H "Content-Type: application/json" \
               "$FIRESTORE_READ_UPDATE_URL" \
@@ -62,6 +63,7 @@ runs:
               echo "Document updated with PATCH."
             else
               curl -X POST \
+              -f \
               -H "Authorization: Bearer $ACCESS_TOKEN" \
               -H "Content-Type: application/json" \
               "$FIRESTORE_CREATE_URL" \
