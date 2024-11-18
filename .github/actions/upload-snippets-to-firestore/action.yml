@@ -29,10 +29,12 @@ runs:
             DOCUMENT=$(echo "$FILE" | sed -E 's|.*/||; s|\.swift$||' | awk '{print tolower(substr($0,1,1)) substr($0,2)}')
             echo "Document name is $DOCUMENT"
 
-            # Store the processed content of the file in the CODE variable
-            # 1. Delete lines that start with // (comments)
-            # 2. Preserve backslash (\)
+            # Delete lines that start with // (comments)
+            # Escape backslash (\)
             CODE=$(sed -E '/^\/\//d; s/\\/\\\\/g' "$FILE")
+
+            # Escape double quotes (")
+            CODE=$(echo "$CODE" | sed -E 's/"/\\"/g')
 
             FIRESTORE_READ_UPDATE_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$DOCUMENT/$MIN_IOS_VERSION/$FIRESTORE_CODEDETAILS_DOCUMENT"
             FIRESTORE_CREATE_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$DOCUMENT/$MIN_IOS_VERSION?documentId=$FIRESTORE_CODEDETAILS_DOCUMENT"

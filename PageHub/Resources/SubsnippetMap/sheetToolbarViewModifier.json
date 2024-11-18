@@ -1,6 +1,7 @@
 {
     "subsnippets": [
         "toolbarConfig",
-        "view_extension_trackSize_perform_view"
+        "view_extension_trackSize_perform_view",
+        "containerValues_extension_alignment"
     ]
 }
