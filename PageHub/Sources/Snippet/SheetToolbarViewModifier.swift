@@ -13,7 +13,7 @@ struct SheetToolbarViewModifier<Item: Identifiable, Sheet: View, Toolbar: View>:
     @Binding var item: Item?
     @Binding var config: ToolbarConfig
     
-    @ViewBuilder var sheet: (Binding<Item>) -> Sheet
+    @ViewBuilder var sheet: (Item) -> Sheet
     @ViewBuilder var toolbar: Toolbar
     
     @State var coffeeViewSize: CGSize = .zero

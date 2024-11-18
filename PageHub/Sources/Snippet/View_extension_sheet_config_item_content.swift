@@ -37,7 +37,7 @@ extension View {
     func sheet<Item, Content, T>(
         config: Binding<ToolbarConfig>,
         item: Binding<Item?>,
-        @ViewBuilder content: @escaping (Binding<Item>) -> Content,
+        @ViewBuilder content: @escaping (Item) -> Content,
         toolbar: () -> SheetToolbarGroup<T>
     ) -> some View where Item : Identifiable, Content : View, T: View {
         self

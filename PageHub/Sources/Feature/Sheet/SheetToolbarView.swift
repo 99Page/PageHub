@@ -78,7 +78,7 @@ struct SheetToolbarView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .sheet(config: $store.toolbarConfig, item: $store.scope(state: \.coffee, action: \.coffee)) { coffeeStore in
-            CoffeeView(store: coffeeStore.wrappedValue)
+            CoffeeView(store: coffeeStore)
         } toolbar: {
             SheetToolbarGroup(alignment: .trailing) {
                 HStack(spacing: 10) {
