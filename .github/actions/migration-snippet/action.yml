@@ -20,7 +20,7 @@ runs:
 
         curl -X GET \
           -H "Authorization: Bearer $ACCESS_TOKEN" \
-          "TEST_SNIPPET_URL" \
+          "$TEST_SNIPPET_URL" \
           -o response.json \
           -f || exit 1
 
