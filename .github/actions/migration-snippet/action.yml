@@ -46,6 +46,8 @@ runs:
             -H "Authorization: Bearer $ACCESS_TOKEN" \
             "$FIRESTORE_PRODUCT_GET_PATCH_URL")
 
+          echo "GET STATUS: $STATUS"
+
           if [ "$STATUS" -eq 200 ]; then
               curl -X PATCH \
                 -f \
