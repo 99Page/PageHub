@@ -23,6 +23,8 @@ runs:
           "$TEST_SNIPPET_URL" \
           -o response.json \
           -f || exit 1
+  
+        JSON_FILE="response.json"
 
         jq -c '.documents[]' "$JSON_FILE" | while read -r document; do
           NAME=$(echo -E "$document" | jq -r '.name' | sed "s|$FIRESTORE_TEST_SNIPPETS_COLLECTION|$FIRESTORE_PRODUCT_SNIPPETS_COLLECTION")
