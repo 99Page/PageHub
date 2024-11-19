@@ -20,12 +20,14 @@ runs:
 
         curl -X GET \
           -H "Authorization: Bearer $ACCESS_TOKEN" \
-          "TEST_SNIPPET_URL" \
+          "$TEST_SNIPPET_URL" \
           -o response.json \
           -f || exit 1
+  
+        JSON_FILE="response.json"
 
         jq -c '.documents[]' "$JSON_FILE" | while read -r document; do
-          NAME=$(echo -E "$document" | jq -r '.name' | sed "s|$FIRESTORE_TEST_SNIPPETS_COLLECTION|$FIRESTORE_PRODUCT_SNIPPETS_COLLECTION")
+          NAME=$(echo -E "$document" | jq -r '.name' | sed "s|$FIRESTORE_TEST_SNIPPETS_COLLECTION|$FIRESTORE_PRODUCT_SNIPPETS_COLLECTION|")
           FIELDS=$(echo -E "$document" | jq -c '.fields')
 
           echo "name: $NAME"
@@ -44,21 +46,26 @@ runs:
             -H "Authorization: Bearer $ACCESS_TOKEN" \
             "$FIRESTORE_PRODUCT_GET_PATCH_URL")
 
+          echo "GET STATUS: $STATUS"
+
+          REQUEST_BODY=$(jq -n --argjson fields "$FIELDS" '{fields: $fields}')
+          echo "REQUEST_BODY: $REQUEST_BODY"
+
           if [ "$STATUS" -eq 200 ]; then
               curl -X PATCH \
                 -f \
                 -H "Authorization: Bearer $ACCESS_TOKEN" \
                 -H "Content-Type: application/json" \
                 "$FIRESTORE_PRODUCT_GET_PATCH_URL" \
-                -d "$(jq -n --argjson fields "$FIELDS" '{fields: $fields}')" || exit 1
+                -d "$REQUEST_BODY" || exit 1
               echo "Document updated with PATCH."
             else
               curl -X POST \
                 -f \
                 -H "Authorization: Bearer $ACCESS_TOKEN" \
                 -H "Content-Type: application/json" \
-                "$FIRESTORE_CREATE_URL" \
-                -d "$(jq -n --argjson fields "$FIELDS" '{fields: $fields}')" || exit 1
+                "$FIRESTORE_PRODUCT_POST_URL" \
+                -d "$REQUEST_BODY" || exit 1
               echo "Document created with POST."
             fi
       
