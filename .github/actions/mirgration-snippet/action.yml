@@ -1,9 +1,5 @@
-name: "Update Snippet Codes"
-description: "Uploads or updates Firestore snippets based on changed files."
-inputs:
-  FILES:
-    description: "A multi-line string containing file paths to upload to Firestore, each path on a new line. Note: Multiple lines cannot be passed via env, so FILES is passed as an input instead."
-    required: true 
+name: "Migration Snippet"
+description: "Migration Snippets: Transitioning from Test to Production Service"
 
 runs:
   using: "composite"
@@ -12,11 +8,7 @@ runs:
       shell: bash
       env:
         ACCESS_TOKEN: ${{ env.ACCESS_TOKEN }}
-        FIREBASE_PROJECT_ID: ${{ env.FIREBASE_PROJECT_ID }}
-        FIRESTORE_TEST_SNIPPETS_COLLECTION: ${{ env.FIRESTORE_TEST_SNIPPETS_COLLECTION }}
-        FIRESTORE_CODEDETAILS_DOCUMENT: ${{ env.FIRESTORE_CODEDETAILS_DOCUMENT }}
-        MIN_IOS_VERSION: ${{ env.MIN_IOS_VERSION }}
-        FILES: ${{ inputs.FILES }}
+        TARGET_URL: ${{ env.TARGET_URL }}
 
       run: |
         # \n을 기준으로 파일 목록을 분리합니다. 
@@ -35,9 +27,6 @@ runs:
 
             # Escape double quotes (")
             CODE=$(echo "$CODE" | sed -E 's/"/\\"/g')
-
-            # Escape newline (\n)
-            CODE=$(echo "$CODE" | sed -E ':a;N;$!ba;s/\n/\\n/g')
 
             FIRESTORE_READ_UPDATE_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$DOCUMENT/$MIN_IOS_VERSION/$FIRESTORE_CODEDETAILS_DOCUMENT"
             FIRESTORE_CREATE_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$DOCUMENT/$MIN_IOS_VERSION?documentId=$FIRESTORE_CODEDETAILS_DOCUMENT"
