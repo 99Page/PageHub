@@ -1,0 +1,47 @@
+name: Migrate designated Snippet
+
+on:
+  workflow_dispatch:
+    inputs:
+      SNIPPET_NAME:
+        required: true 
+      MIN_IOS_VERSION:
+        description: 'The minimum iOS version for the updated snippet to be applied'
+        required: true
+
+jobs:
+  build:
+    runs-on: macos-15
+    env:
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        FIREBASE_SERVICE_KEY: ${{ secrets.FIREBASE_SERVICE_KEY }}
+        FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        
+        FIRESTORE_TEST_SNIPPETS_COLLECTION: ${{ secrets.FIRESTORE_TEST_SNIPPETS_COLLECTION }}
+        FIRESTORE_CODEDETAILS_DOCUMENT: ${{ secrets.FIRESTORE_CODEDETAILS_DOCUMENT }}
+        FIRESTORE_SUBSNIPPETS_DOCUMENT: ${{ secrets.FIRESTORE_SUBSNIPPETS_DOCUMENT }}
+        
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install required SDKs
+      uses: ./.github/actions/install-sdk
+      with:
+        GOOGLE_CLOUD_SERVICE_KEY: ${{ secrets.PAGEHUB_SERVICE }}
+        FIREBASE_SERVICE_KEY: ${{ secrets.FIREBASE_SERVICE_KEY }}
+
+    - name: Set Up Environment Variables to Update Snippets 
+      run: |
+        ACCESS_TOKEN=$(./google-cloud-sdk/bin/gcloud auth print-access-token)
+        echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
+        
+        echo "MIN_IOS_VERSION=${{ github.event.inputs.MIN_IOS_VERSION }}" >> $GITHUB_ENV
+        echo "SNIPPET_NAME={{ github.event.inputs.SNIPPET_NAME }}" >> $GITHUB_ENV
+
+        echo "FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID" >> $GITHUB_ENV
+        echo "FIRESTORE_TEST_SNIPPETS_COLLECTION=$FIRESTORE_TEST_SNIPPETS_COLLECTION" >> $GITHUB_ENV
+        echo "FIRESTORE_PRODUCT_SNIPPETS_COLLECTION=$FIRESTORE_PRODUCT_SNIPPETS_COLLECTION" >> $GITHUB_ENV
+
+    - name: Migrate Snippets
+      uses: ./.github/actions/migration-snippet

@@ -36,6 +36,9 @@ runs:
             # Escape double quotes (")
             CODE=$(echo "$CODE" | sed -E 's/"/\\"/g')
 
+            # Escape newline (\n)
+            CODE=$(echo "$CODE" | sed ':a;N;$!ba;s/\n/\\n/g')
+
             FIRESTORE_READ_UPDATE_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$DOCUMENT/$MIN_IOS_VERSION/$FIRESTORE_CODEDETAILS_DOCUMENT"
             FIRESTORE_CREATE_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$DOCUMENT/$MIN_IOS_VERSION?documentId=$FIRESTORE_CODEDETAILS_DOCUMENT"
 
