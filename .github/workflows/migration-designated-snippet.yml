@@ -37,7 +37,7 @@ jobs:
         echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
         
         echo "MIN_IOS_VERSION=${{ github.event.inputs.MIN_IOS_VERSION }}" >> $GITHUB_ENV
-        echo "SNIPPET_NAME={{ github.event.inputs.SNIPPET_NAME }}" >> $GITHUB_ENV
+        echo "SNIPPET_NAME=${{ github.event.inputs.SNIPPET_NAME }}" >> $GITHUB_ENV
 
         echo "FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID" >> $GITHUB_ENV
         echo "FIRESTORE_TEST_SNIPPETS_COLLECTION=$FIRESTORE_TEST_SNIPPETS_COLLECTION" >> $GITHUB_ENV
