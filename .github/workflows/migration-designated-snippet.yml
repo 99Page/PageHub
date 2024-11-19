@@ -1,9 +1,10 @@
-name: Migrate designated Snippet
+name: Designated Snippet Migration
 
 on:
   workflow_dispatch:
     inputs:
       SNIPPET_NAME:
+        Description: The snippet name is saved as a document in the test database. Be careful with case sensitivity.
         required: true 
       MIN_IOS_VERSION:
         description: 'The minimum iOS version for the updated snippet to be applied'
@@ -20,6 +21,7 @@ jobs:
         FIRESTORE_TEST_SNIPPETS_COLLECTION: ${{ secrets.FIRESTORE_TEST_SNIPPETS_COLLECTION }}
         FIRESTORE_CODEDETAILS_DOCUMENT: ${{ secrets.FIRESTORE_CODEDETAILS_DOCUMENT }}
         FIRESTORE_SUBSNIPPETS_DOCUMENT: ${{ secrets.FIRESTORE_SUBSNIPPETS_DOCUMENT }}
+        FIRESTORE_PRODUCT_SNIPPETS_COLLECTION: ${{ secrets.FIRESTORE_PRODUCT_SNIPPETS_COLLECTION }}
         
 
     steps:
