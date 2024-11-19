@@ -64,7 +64,7 @@ runs:
                 -f \
                 -H "Authorization: Bearer $ACCESS_TOKEN" \
                 -H "Content-Type: application/json" \
-                "$FIRESTORE_CREATE_URL" \
+                "$FIRESTORE_PRODUCT_POST_URL" \
                 -d "$REQUEST_BODY" || exit 1
               echo "Document created with POST."
             fi
