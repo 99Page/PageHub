@@ -1,6 +1,6 @@
 name: Modified Snippet Migration
 
-on:
+on: 
   pull_request: 
     types:
       - closed
@@ -29,11 +29,12 @@ jobs:
     - name: Set Up Environment Variables to Migration
       run: |
         ACCESS_TOKEN=$(./google-cloud-sdk/bin/gcloud auth print-access-token)
+        echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
         
         echo "MIN_IOS_VERSION=${{ github.event.inputs.MIN_IOS_VERSION }}" >> $GITHUB_ENV
         echo "FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID" >> $GITHUB_ENV
         echo "FIRESTORE_TEST_SNIPPETS_COLLECTION=$FIRESTORE_TEST_SNIPPETS_COLLECTION" >> $GITHUB_ENV
-        echo "FIRESTORE_PRODUCT_SNIPPETS_COLLECTION=$FIRESTORE_PRODUCT_SNIPPETS_COLLECTION >> $GITHUB_EN
+        echo "FIRESTORE_PRODUCT_SNIPPETS_COLLECTION=$FIRESTORE_PRODUCT_SNIPPETS_COLLECTION" >> $GITHUB_ENV
           
         git fetch origin   
         CHANGED_FILES=$(git diff --name-only origin/main $GITHUB_SHA | grep "^PageHub/Sources/Snippet" || true)
