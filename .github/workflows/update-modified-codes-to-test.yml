@@ -1,12 +1,10 @@
-# This workflow will build a Swift project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-swift
-
-name: Google Cloud Setup
+name: Update Modified Codes
 
 on:
-  push:
-    branches:
-      - 'chore/**'  # chore/ 하위 브랜치에 푸시될 때 실행
+  pull_request:
+    types:
+      - opened 
+      - synchronize
 
 jobs:
   build:
@@ -18,6 +16,8 @@ jobs:
         
         FIRESTORE_TEST_SNIPPETS_COLLECTION: ${{ secrets.FIRESTORE_TEST_SNIPPETS_COLLECTION }}
         FIRESTORE_TEST_FEATURES_COLLECTION: ${{ secrets.FIRESTORE_TEST_FEATURES_COLLECTION }}
+
+        FIRESTORE_PRODUCT_SNIPPETS_COLLECTION: ${{ secrets.FIRESTORE_PRODUCT_SNIPPETS_COLLECTION }}
 
         FIRESTORE_CODEDETAILS_DOCUMENT: ${{ secrets.FIRESTORE_CODEDETAILS_DOCUMENT }}
         FIRESTORE_SNIPPETS_DOCUMENT: ${{ secrets.FIRESTORE_SNIPPETS_DOCUMENT }}
@@ -77,13 +77,10 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
         fi
 
-    - name: Call 
+    - name: Update Snippet Codes
       uses: ./.github/actions/upload-snippets-to-firestore
       with:
         FILES: ${{ env.CHANGED_FILES }}
-
-    - name: Update Firestore with Features
-      uses: ./.github/actions/update-features-to-firestore
 
     - name: Set Up Environment Values for Update Subsnippet
       run: |
@@ -111,7 +108,7 @@ jobs:
         echo "FIRESTORE_CODEDETAILS_DOCUMENT=$FIRESTORE_CODEDETAILS_DOCUMENT" >> $GITHUB_ENV
         echo "FIRESTORE_SUBSNIPPETS_DOCUMENT=$FIRESTORE_SUBSNIPPETS_DOCUMENT" >> $GITHUB_ENV
 
-    - name: Check Update Snippet Codes 
+    - name: Check Snippet Code
       uses: ./.github/actions/check-snippet-code
       with: 
         FILES: ${{ env.CHANGED_FILES }}
