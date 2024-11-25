@@ -96,6 +96,11 @@ runs:
           update_snippets_by_json_file
         } 
 
+        # Exit action if SNIPPET_INPUT is Empty
+        if [ -z "$SNIPPET_INPUT" ]; then 
+          exit 0 
+        fi
+
         echo -e "$SNIPPET_INPUT" | while read -r SNIPPET_NAME; do 
           migrate_snippet $SNIPPET_NAME
         done
