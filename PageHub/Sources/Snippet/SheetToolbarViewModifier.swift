@@ -16,7 +16,7 @@ struct SheetToolbarViewModifier<Item: Identifiable, Sheet: View, Toolbar: View>:
     @ViewBuilder var sheet: (Item) -> Sheet
     @ViewBuilder var toolbar: Toolbar
     
-    @State var coffeeViewSize: CGSize = .zero
+    @State var sheetViewSize: CGSize = .zero
     
     func body(content: Content) -> some View {
         content
@@ -24,7 +24,7 @@ struct SheetToolbarViewModifier<Item: Identifiable, Sheet: View, Toolbar: View>:
                 sheet(item)
                     .presentationDetents(config.presentationDedents, selection: $config.selection)
                     .trackSize { size in
-                        coffeeViewSize = size
+                        sheetViewSize = size
                     }
                     .presentationBackgroundInteraction(config.backgroundInteraction)
             }
@@ -46,8 +46,7 @@ struct SheetToolbarViewModifier<Item: Identifiable, Sheet: View, Toolbar: View>:
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: hStackAlignment)
-                    .offset(y: -coffeeViewSize.height)
-                    .animation(.easeInOut(duration: 0.2), value: coffeeViewSize.height)
+                    .offset(y: -sheetViewSize.height)
                 }
             }
             .onChange(of: config.selection) { oldValue, newValue in

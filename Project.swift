@@ -17,7 +17,7 @@ let infoPlist: [String: Plist.Value] = [
 
 /// 이곳에 명시된 버전을 이용해서 firebase의 데이터를 업데이트하고 있습니다.
 /// 따라서 버전 문자열 외에는 수정에 유의합니다.
-let deploymentTarget: DeploymentTargets = .iOS("18.0.0")
+let deploymentTarget: DeploymentTargets = .iOS("18.0")
 
 let destinations: Destinations = .iOS
 
