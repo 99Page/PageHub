@@ -31,10 +31,10 @@ runs:
         # Authenticate with Google Cloud
         ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=/tmp/service-account-key.json
 
-    - name: Create Firebase Key File
-      shell: bash
-      run: | 
-        echo "${{ inputs.FIREBASE_SERVICE_KEY }}" | base64 --decode > /tmp/firebase-key.json
-        curl -sL https://firebase.tools | bash
-        firebase projects:list
-        firebase deploy --only firestore
+   # - name: Create Firebase Key File
+    #  shell: bash
+     # run: | 
+      #  echo "${{ inputs.FIREBASE_SERVICE_KEY }}" | base64 --decode > /tmp/firebase-key.json
+       # curl -sL https://firebase.tools | bash
+        #firebase projects:list
+        #firebase deploy --only firestore
