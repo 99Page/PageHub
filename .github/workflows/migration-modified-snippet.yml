@@ -19,6 +19,15 @@ jobs:
       
     steps:
     - uses: actions/checkout@v4
+
+    - name: Check for the existence of modified files
+      run: |
+        CHANGED_FILES=$(git diff --name-only origin/main $GITHUB_SHA | grep "^PageHub/Sources/Snippet" || true)
+
+        if [ -n "$CHANGED_FILES" ]; then 
+          echo "No modified files detected in PageHub/Sources/Snippet. Exiting"
+          exit 0
+        fi
     
     - name: Install required SDKs
       uses: ./.github/actions/install-sdk
@@ -37,10 +46,6 @@ jobs:
         echo "FIRESTORE_PRODUCT_SNIPPETS_COLLECTION=$FIRESTORE_PRODUCT_SNIPPETS_COLLECTION" >> $GITHUB_ENV
           
         git fetch origin   
-        CHANGED_FILES=$(git diff --name-only origin/main $GITHUB_SHA | grep "^PageHub/Sources/Snippet" || true)
-        if [ -z "$CHANGED_FILES" ]; then
-          echo "No changes detected in PageHub/Sources/Snippet."
-        fi
         
         SNIPPET_INPUT=""
         for FILE in $CHANGED_FILES; do

@@ -26,6 +26,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Check for the existence of modified files
+      run: |
+        CHANGED_FILES=$(git diff --name-only origin/main $GITHUB_SHA | grep "^PageHub/Sources/Snippet" || true)
+
+        if [ -n "$CHANGED_FILES" ]; then 
+          echo "No modified files detected in PageHub/Sources/Snippet. Exiting"
+          exit 0
+        fi
+ 
     
     - name: Install required SDKs
       uses: ./.github/actions/install-sdk
@@ -38,15 +48,6 @@ jobs:
         git fetch origin main
         MIN_IOS_VERSION=$(grep -o '.iOS(.*)' Project.swift | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
         echo "MIN_IOS_VERSION=$MIN_IOS_VERSION" >> $GITHUB_ENV
-
-        CHANGED_FILES=$(git diff --name-only origin/main $GITHUB_SHA | grep "^PageHub/Sources/Snippet" || true)
-
-        if [ -z "$CHANGED_FILES" ]; then
-          echo "No changes detected in PageHub/Sources/Snippet."
-        else
-          echo "Changed files: $CHANGED_FILES"
-        # 여기서 추가 작업 실행
-        fi
         
         # Github actions에서는 Bash 스타일 변수를 with에 사용할 수 없다.
         # $ {{ }} 문법 형태를 사용해야해서, env에 저장 후 사용한다. 
