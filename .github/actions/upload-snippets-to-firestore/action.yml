@@ -1,4 +1,4 @@
-name: "Update Snippet Codes"
+	name: "Update Snippet Codes"
 description: "Uploads or updates Firestore snippets based on changed files."
 inputs:
   FILES:

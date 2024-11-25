@@ -1,4 +1,4 @@
-name: "Migration Snippet"
+name: "Migration Snippets"
 description: "Migration Snippets: Transitioning from Test to Production Service"
 
 runs:
@@ -7,51 +7,58 @@ runs:
     - name: Process and Upload Files to Firestore
       shell: bash
       env:
+        # The Authorization token information to be included in the curl header.
         ACCESS_TOKEN: ${{ env.ACCESS_TOKEN }}
-        SNIPPET_NAME: ${{ env.SNIPPET_NAME }}
+
+        # The testDatabase contains snippet names. You can include snippets separated by \n.
+        # Example: feature1\nfeature2\nfeature3
+        SNIPPET_INPUT: ${{ env.SNIPPET_INPUT }}
         MIN_IOS_VERSION: ${{ env.MIN_IOS_VERSION }}
 
+        # The following values are to be included in the curl URL.
         FIREBASE_PROJECT_ID: ${{ env.FIREBASE_PROJECT_ID }}
         FIRESTORE_TEST_SNIPPETS_COLLECTION: ${{ env.FIRESTORE_TEST_SNIPPETS_COLLECTION }} 
         FIRESTORE_PRODUCT_SNIPPETS_COLLECTION: ${{ env.FIRESTORE_PRODUCT_SNIPPETS_COLLECTION }}
 
       run: |
-        TEST_SNIPPET_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$SNIPPET_NAME/$MIN_IOS_VERSION"
-
-        curl -X GET \
-          -H "Authorization: Bearer $ACCESS_TOKEN" \
-          "$TEST_SNIPPET_URL" \
-          -o response.json \
-          -f || exit 1
-  
+    
         JSON_FILE="response.json"
 
-        jq -c '.documents[]' "$JSON_FILE" | while read -r document; do
-          NAME=$(echo -E "$document" | jq -r '.name' | sed "s|$FIRESTORE_TEST_SNIPPETS_COLLECTION|$FIRESTORE_PRODUCT_SNIPPETS_COLLECTION|")
-          FIELDS=$(echo -E "$document" | jq -c '.fields')
+        make_test_response_json_file() {
+          local SNIPPET_NAME="$1"
+          TEST_SNIPPET_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$SNIPPET_NAME/$MIN_IOS_VERSION"
 
-          echo "name: $NAME"
-          echo "field: $FIELDS"
+          curl -X GET \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            "$TEST_SNIPPET_URL" \
+            -o $JSON_FILE \
+            -f || exit 1
+
+        }
+
+        update_snippet() {
+          local RESPONSE_NAME="$1"
+          local RESPONSE_FILE="$2"
 
           FIRESTORE_PRODUCT_GET_PATCH_URL="https://firestore.googleapis.com/v1/$NAME"
           QUERY_URL=$(echo "$NAME" | sed -E 's|^(.*)/([^/]+)$|\1?documentId=\2|')
           FIRESTORE_PRODUCT_POST_URL="https://firestore.googleapis.com/v1/$QUERY_URL"
 
-          echo "GET URL: $FIRESTORE_PRODUCT_GET_PATCH_URL"
-          echo "POST URL: $FIRESTORE_PRODUCT_POST_URL"
+            echo "GET URL: $FIRESTORE_PRODUCT_GET_PATCH_URL"
+            echo "POST URL: $FIRESTORE_PRODUCT_POST_URL"
 
-          STATUS=$(curl -s \
-            -o /dev/null \
-            -w "%{http_code}" \
-            -H "Authorization: Bearer $ACCESS_TOKEN" \
-            "$FIRESTORE_PRODUCT_GET_PATCH_URL")
+            STATUS=$(curl -s \
+              -o /dev/null \
+              -w "%{http_code}" \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              "$FIRESTORE_PRODUCT_GET_PATCH_URL")
 
-          echo "GET STATUS: $STATUS"
+            echo "GET STATUS: $STATUS"
 
-          REQUEST_BODY=$(jq -n --argjson fields "$FIELDS" '{fields: $fields}')
-          echo "REQUEST_BODY: $REQUEST_BODY"
+            REQUEST_BODY=$(jq -n --argjson fields "$FIELDS" '{fields: $fields}')
+            echo "REQUEST_BODY: $REQUEST_BODY"
 
-          if [ "$STATUS" -eq 200 ]; then
+            if [ "$STATUS" -eq 200 ]; then
               curl -X PATCH \
                 -f \
                 -H "Authorization: Bearer $ACCESS_TOKEN" \
@@ -67,6 +74,29 @@ runs:
                 "$FIRESTORE_PRODUCT_POST_URL" \
                 -d "$REQUEST_BODY" || exit 1
               echo "Document created with POST."
-            fi
-      
+             fi    
+        }
+
+        update_snippets_by_json_file() {
+            jq -c '.documents[]' "$JSON_FILE" | while read -r document; do
+              NAME=$(echo -E "$document" | jq -r '.name' | sed "s|$FIRESTORE_TEST_SNIPPETS_COLLECTION|$FIRESTORE_PRODUCT_SNIPPETS_COLLECTION|")
+              FIELDS=$(echo -E "$document" | jq -c '.fields')
+
+              echo "name: $NAME"
+              echo "field: $FIELDS"
+
+              update_snippet $NAME $FIELDS
+            done
+        } 
+
+        migrate_snippet() {
+          local SNIPPET_NAME="$1"
+
+          make_test_response_json_file $SNIPPET_NAME
+          update_snippets_by_json_file
+        } 
+
+        echo -e "$SNIPPET_INPUT" | while read -r SNIPPET_NAME; do 
+          migrate_snippet $SNIPPET_NAME
         done
+     
