@@ -17,6 +17,7 @@ struct ContentFeature {
     
     @Reducer
     struct Path {
+        @ObservableState
         enum State: Equatable {
             case sheetToolbar(SheetToolbarFeature.State)
         }
@@ -50,19 +51,15 @@ struct ContentFeature {
 }
 
 struct ContentView: View {
-    let store: StoreOf<ContentFeature>
+    @Bindable var store: StoreOf<ContentFeature>
+    
     var body: some View {
-        NavigationStackStore(self.store.scope(state: \.path, action: \.path)) {
-            FetureGridView(
-                store: store.scope(state: \.featureGrid, action: \.featureGrid)
-            )
+        NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
+            FetureGridView(store: store.scope(state: \.featureGrid, action: \.featureGrid))
         } destination: { store in
-            switch store {
+            switch store.state {
             case .sheetToolbar:
-                CaseLet(
-                    \ContentFeature.Path.State.sheetToolbar,
-                     action: ContentFeature.Path.Action.sheetToolbar
-                ) { store in
+                if let store = store.scope(state: \.sheetToolbar, action: \.sheetToolbar) {
                     SheetToolbarView(store: store)
                 }
             }

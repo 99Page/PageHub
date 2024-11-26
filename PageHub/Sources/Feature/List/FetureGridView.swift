@@ -33,7 +33,7 @@ struct FetureGridView: View {
     let store: StoreOf<FeatureGridFeature>
     
     var body: some View {
-        WithViewStore(self.store, observe: { $0 }) { viewStore in
+        WithPerceptionTracking {
             VStack {
                 NavigationLink(state: ContentFeature.Path.State.sheetToolbar(SheetToolbarFeature.State())) {
                     Text("SheetToolbar")
