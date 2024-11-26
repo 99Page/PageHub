@@ -10,21 +10,19 @@ import ComposableArchitecture
 import SwiftUI
 
 @Reducer
-struct ColorFeature {
+struct SymbolFeature {
     
     @ObservableState
     struct State: Equatable {
-        var colors: [Color] = [.red]
+        var symbolStyles: [SymbolStyle] = []
         
-        mutating func addColor() {
-            let colorCandidates: [Color] = [.red, .blue, .orange, .purple, .pink, .brown, .cyan]
-            let newColor = colorCandidates.randomElement() ?? .blue
-            
-            colors.append(newColor)
+        mutating func addSymbol() {
+            symbolStyles.append(.randomStyle)
         }
         
-        mutating func decreaseCoffee() {
-            colors.removeLast()
+        mutating func removeLast() {
+            guard !symbolStyles.isEmpty else { return }
+            symbolStyles.removeLast()
         }
     }
     
@@ -41,9 +39,9 @@ struct ColorFeature {
     }
 }
 
-struct CoffeeView: View {
+struct SymbolView: View {
     
-    let store: StoreOf<ColorFeature>
+    let store: StoreOf<SymbolFeature>
     
     let columns: [GridItem] = [
         GridItem(.flexible()),
@@ -54,18 +52,22 @@ struct CoffeeView: View {
     var body: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 20) {
-                ForEach(0..<store.colors.count, id: \.self) { index in
-                    Circle()
-                        .fill(store.colors[index])
-                        .frame(width: 30, height: 30)
+                ForEach(store.symbolStyles) { symbolStyle in
+                    AnimatedView(effect: symbolStyle.animationEffect) {
+                        Image(systemName: symbolStyle.symbol.rawValue)
+                            .resizable()
+                            .frame(width: 45, height: 45)
+                            .foregroundStyle(symbolStyle.color)
+                    }
                 }
             }
+            .safeAreaPadding(.top, 30)
         }
     }
 }
 
 #Preview {
-    CoffeeView(store: Store(initialState: ColorFeature.State()) {
-        ColorFeature()
+    SymbolView(store: Store(initialState: SymbolFeature.State()) {
+        SymbolFeature()
     })
 }

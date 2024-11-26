@@ -20,24 +20,37 @@ struct SheetToolbarViewModifier<Item: Identifiable, Sheet: View, Toolbar: View>:
     
     func body(content: Content) -> some View {
         content
-            .sheet(item: $item) { item in
-                sheet(item)
-                    .presentationDetents(config.presentationDedents, selection: $config.selection)
-                    .trackSize { size in
-                        sheetViewSize = size
-                    }
-                    .presentationBackgroundInteraction(config.backgroundInteraction)
-            }
-            .overlay(alignment: .bottom) {
-                toolbar
-                    .frame(maxWidth: .infinity, alignment: config.adjustiveAlignment)
-                    .offset(y: -sheetViewSize.height)
-            }
-            .onChange(of: config.selection) { oldValue, newValue in
-                if newValue == .fraction(0.01) {
-                    item = nil
-                    config.selection = oldValue
-                }
-            }
+            .sheet(item: $item, content: buildSheet)
+            .overlay(alignment: .bottom, content: buildToolbar)
+            .onChange(of: config.selection, onSelectionChanged)
+    }
+    
+    private func buildSheet(item: Item) -> some View {
+        sheet(item)
+            .presentationDetents(config.presentationDedents, selection: $config.selection)
+            .trackSize(updateViewSize)
+            .presentationBackgroundInteraction(config.backgroundInteraction)
+            .onAppear { config.isSheetAppeared = true }
+            .onDisappear { config.isSheetAppeared = false }
+    }
+    
+    @ViewBuilder
+    private func buildToolbar() -> some View {
+        if config.isToolbarPresented {
+            toolbar
+                .frame(maxWidth: .infinity, alignment: config.alignment)
+                .offset(y: -sheetViewSize.height)
+        }
+    }
+    
+    private func onSelectionChanged(oldValue: PresentationDetent, newValue: PresentationDetent) {
+        if config.isAtMinimumHeightFraction {
+            item = nil
+            config.selection = oldValue
+        }
+    }
+    
+    private func updateViewSize(size: CGSize) {
+        sheetViewSize = size
     }
 }

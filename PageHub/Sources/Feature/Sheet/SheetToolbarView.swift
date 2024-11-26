@@ -13,18 +13,19 @@ import SwiftUI
 struct SheetToolbarFeature {
     @ObservableState
     struct State: Equatable {
-        @Presents var coffee: ColorFeature.State?
+        @Presents var symbol: SymbolFeature.State?
         
         var toolbarConfig = ToolbarConfig(
             presentationDedents: [.medium, .fraction(0.9)],
             selection: .medium,
             backgroundInteraction: .enabled,
-            alignment: .trailing
+            alignment: .trailing,
+            toolbarHiddenPresentationDedents: [.fraction(0.9)]
         )
     }
     
     enum Action: BindableAction {
-        case coffee(PresentationAction<ColorFeature.Action>)
+        case symbol(PresentationAction<SymbolFeature.Action>)
         case showSheetButtonTapped
         case binding(BindingAction<State>)
         case plusToolbarTapped
@@ -36,31 +37,32 @@ struct SheetToolbarFeature {
         
         Reduce { state, action in
             switch action {
-            case .coffee(_):
+            case .symbol(_):
                 return .none
             case .showSheetButtonTapped:
-                state.coffee = ColorFeature.State()
+                state.symbol = SymbolFeature.State()
                 return .none
             case .binding(_):
                 return .none
             case .plusToolbarTapped:
-                if state.coffee == nil {
-                    state.coffee = ColorFeature.State()
+                if state.symbol == nil {
+                    state.symbol = SymbolFeature.State()
                 }
                 
-                state.coffee?.addColor()
+                state.symbol?.addSymbol()
+                
                 return .none
             case .minusToolbarTapped:
-                if state.coffee == nil {
-                    state.coffee = ColorFeature.State()
+                if state.symbol == nil {
+                    state.symbol = SymbolFeature.State()
                 }
                 
-                state.coffee?.decreaseCoffee()
+                state.symbol?.removeLast()
                 return .none
             }
         }
-        .ifLet(\.$coffee, action: \.coffee) {
-            ColorFeature()
+        .ifLet(\.$symbol, action: \.symbol) {
+            SymbolFeature()
         }
     }
 }
@@ -78,8 +80,8 @@ struct SheetToolbarView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .sheet(config: $store.toolbarConfig, item: $store.scope(state: \.coffee, action: \.coffee)) { coffeeStore in
-            CoffeeView(store: coffeeStore)
+        .sheet(config: $store.toolbarConfig, item: $store.scope(state: \.symbol, action: \.symbol)) { symbolStore in
+            SymbolView(store: symbolStore)
         } toolbar: {
             HStack(spacing: 10) {
                 Button {
