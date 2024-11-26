@@ -18,7 +18,8 @@ struct SheetToolbarFeature {
         var toolbarConfig = ToolbarConfig(
             presentationDedents: [.medium, .fraction(0.9)],
             selection: .medium,
-            backgroundInteraction: .enabled
+            backgroundInteraction: .enabled,
+            alignment: .trailing
         )
     }
     
@@ -80,27 +81,25 @@ struct SheetToolbarView: View {
         .sheet(config: $store.toolbarConfig, item: $store.scope(state: \.coffee, action: \.coffee)) { coffeeStore in
             CoffeeView(store: coffeeStore)
         } toolbar: {
-            SheetToolbarGroup(alignment: .trailing) {
-                HStack(spacing: 10) {
-                    Button {
-                        store.send(.plusToolbarTapped)
-                    } label: {
-                        Image(systemName: "plus.circle")
-                            .resizable()
-                            .frame(width: 30, height: 30)
-                    }
-                    
-                    Button {
-                        store.send(.minusToolbarTapped)
-                    } label: {
-                        Image(systemName: "minus.circle")
-                            .resizable()
-                            .frame(width: 30, height: 30)
-                    }
+            HStack(spacing: 10) {
+                Button {
+                    store.send(.plusToolbarTapped)
+                } label: {
+                    Image(systemName: "plus.circle")
+                        .resizable()
+                        .frame(width: 30, height: 30)
                 }
-                .padding(.trailing, 10)
-                .padding(.bottom, 10)
+                
+                Button {
+                    store.send(.minusToolbarTapped)
+                } label: {
+                    Image(systemName: "minus.circle")
+                        .resizable()
+                        .frame(width: 30, height: 30)
+                }
             }
+            .padding(.trailing, 10)
+            .padding(.bottom, 10)
         }
     }
 }

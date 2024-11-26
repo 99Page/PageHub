@@ -17,13 +17,22 @@ struct ToolbarConfig: Equatable {
     let presentationDedents: Set<PresentationDetent>
     var selection: PresentationDetent
     let backgroundInteraction: PresentationBackgroundInteraction
+    private let alignment: Alignment
     
-    init(presentationDedents: Set<PresentationDetent>, selection: PresentationDetent, backgroundInteraction: PresentationBackgroundInteraction) {
+    init(presentationDedents: Set<PresentationDetent>, selection: PresentationDetent, backgroundInteraction: PresentationBackgroundInteraction, alignment: Alignment) {
         var adjustivePresentationDedents: Set<PresentationDetent> = [.fraction(0.01)]
         adjustivePresentationDedents.formUnion(presentationDedents)
         
         self.presentationDedents = adjustivePresentationDedents
         self.selection = selection
         self.backgroundInteraction = backgroundInteraction
+        self.alignment = alignment
+    }
+    
+    var adjustiveAlignment: Alignment {
+        switch alignment {
+        case .leading: .leading
+        default: .trailing
+        }
     }
 }

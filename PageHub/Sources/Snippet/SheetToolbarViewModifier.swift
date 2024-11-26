@@ -10,13 +10,13 @@ import SwiftUI
 
 struct SheetToolbarViewModifier<Item: Identifiable, Sheet: View, Toolbar: View>: ViewModifier {
     
+    @State var sheetViewSize: CGSize = .zero
+    
     @Binding var item: Item?
     @Binding var config: ToolbarConfig
     
     @ViewBuilder var sheet: (Item) -> Sheet
     @ViewBuilder var toolbar: Toolbar
-    
-    @State var sheetViewSize: CGSize = .zero
     
     func body(content: Content) -> some View {
         content
@@ -29,25 +29,9 @@ struct SheetToolbarViewModifier<Item: Identifiable, Sheet: View, Toolbar: View>:
                     .presentationBackgroundInteraction(config.backgroundInteraction)
             }
             .overlay(alignment: .bottom) {
-                ForEach(sections: toolbar) { section in
-                    let values = section.containerValues
-                    let alignment = values.alignment
-                    let hStackAlignment: Alignment = alignment == .trailing ? .trailing : .leading
-                    
-                    HStack {
-                        if hStackAlignment == .trailing {
-                            Spacer()
-                        }
-                        
-                        section.content
-                        
-                        if hStackAlignment == .leading {
-                            Spacer()
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: hStackAlignment)
+                toolbar
+                    .frame(maxWidth: .infinity, alignment: config.adjustiveAlignment)
                     .offset(y: -sheetViewSize.height)
-                }
             }
             .onChange(of: config.selection) { oldValue, newValue in
                 if newValue == .fraction(0.01) {
