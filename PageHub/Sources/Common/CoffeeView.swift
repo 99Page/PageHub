@@ -26,7 +26,7 @@ struct SymbolFeature {
         }
     }
     
-    enum Action {
+    enum Action: Equatable {
         
     }
     

@@ -24,7 +24,7 @@ struct SheetToolbarFeature {
         )
     }
     
-    enum Action: BindableAction {
+    enum Action: BindableAction, Equatable {
         case symbol(PresentationAction<SymbolFeature.Action>)
         case showSheetButtonTapped
         case binding(BindingAction<State>)

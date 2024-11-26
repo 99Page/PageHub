@@ -1,12 +1,71 @@
 import ComposableArchitecture
 import SwiftUI
 
-struct ContentView: View {
-    var body: some View {
-        NavigationStack {
-            SheetToolbarView(store: Store(initialState: SheetToolbarFeature.State()) {
+@Reducer
+struct ContentFeature {
+    
+    @ObservableState
+    struct State: Equatable {
+        var path = StackState<Path.State>()
+        var featureGrid = FeatureGridFeature.State()
+    }
+    
+    enum Action: Equatable {
+        case path(StackAction<Path.State, Path.Action>)
+        case featureGrid(FeatureGridFeature.Action)
+    }
+    
+    @Reducer
+    struct Path {
+        enum State: Equatable {
+            case sheetToolbar(SheetToolbarFeature.State)
+        }
+        
+        enum Action: Equatable {
+            case sheetToolbar(SheetToolbarFeature.Action)
+        }
+        
+        var body: some ReducerOf<Self> {
+            Scope(state: \.sheetToolbar, action: \.sheetToolbar) {
                 SheetToolbarFeature()
-            })
+            }
+        }
+    }
+    
+    var body: some ReducerOf<Self> {
+        Scope(state: \.featureGrid, action: \.featureGrid) {
+            FeatureGridFeature()
+        }
+        
+        Reduce { state, action in
+            switch action {
+            case .path(_):
+                return .none
+            }
+        }
+        .forEach(\.path, action: \.path) {
+            Path()
+        }
+    }
+}
+
+struct ContentView: View {
+    let store: StoreOf<ContentFeature>
+    var body: some View {
+        NavigationStackStore(self.store.scope(state: \.path, action: \.path)) {
+            FetureGridView(
+                store: store.scope(state: \.featureGrid, action: \.featureGrid)
+            )
+        } destination: { store in
+            switch store {
+            case .sheetToolbar:
+                CaseLet(
+                    \ContentFeature.Path.State.sheetToolbar,
+                     action: ContentFeature.Path.Action.sheetToolbar
+                ) { store in
+                    SheetToolbarView(store: store)
+                }
+            }
         }
     }
 }
@@ -14,6 +73,8 @@ struct ContentView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        ContentView(store: Store(initialState: ContentFeature.State(), reducer: {
+            ContentFeature()
+        }))
     }
 }
