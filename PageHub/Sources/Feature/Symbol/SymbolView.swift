@@ -16,10 +16,6 @@ struct SymbolFeature {
     struct State: Equatable {
         var symbolStyles: [SymbolStyle] = []
         
-        mutating func addSymbol() {
-            symbolStyles.append(.randomStyle)
-        }
-        
         mutating func removeLast() {
             guard !symbolStyles.isEmpty else { return }
             symbolStyles.removeLast()
