@@ -27,11 +27,10 @@ struct SheetToolbarViewModifier<Item: Identifiable, Sheet: View, Toolbar: View>:
     
     private func buildSheet(item: Item) -> some View {
         sheet(item)
+            .frame(maxHeight: .infinity) // sheet의 크기가 변할 수 있도록 해줍니다.
             .presentationDetents(config.presentationDedents, selection: $config.selection)
             .trackSize(updateViewSize)
             .presentationBackgroundInteraction(config.backgroundInteraction)
-            .onAppear { config.isSheetAppeared = true }
-            .onDisappear { config.isSheetAppeared = false }
     }
     
     @ViewBuilder

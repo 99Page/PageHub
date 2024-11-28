@@ -14,6 +14,8 @@ struct SheetToolbarFeature {
     struct State: Equatable {
         @Presents var symbol: SymbolFeature.State?
         
+        var featureToolbar = FeatureToolbarReducer.State(featureName: "sheetToolbar")
+        
         var toolbarConfig = ToolbarConfig(
             presentationDedents: [.medium, .fraction(0.9)],
             selection: .medium,
@@ -25,6 +27,7 @@ struct SheetToolbarFeature {
     
     enum Action: BindableAction, Equatable {
         case symbol(PresentationAction<SymbolFeature.Action>)
+        case featureToolbar(FeatureToolbarReducer.Action)
         case showSheetButtonTapped
         case binding(BindingAction<State>)
         case plusToolbarTapped
@@ -36,6 +39,10 @@ struct SheetToolbarFeature {
     
     var body: some ReducerOf<Self> {
         BindingReducer()
+        
+        Scope(state: \.featureToolbar, action: \.featureToolbar) {
+            FeatureToolbarReducer()
+        }
         
         Reduce { state, action in
             switch action {
@@ -61,6 +68,8 @@ struct SheetToolbarFeature {
                 }
                 
                 state.symbol?.removeLast()
+                return .none
+            case .featureToolbar(_):
                 return .none
             }
         }

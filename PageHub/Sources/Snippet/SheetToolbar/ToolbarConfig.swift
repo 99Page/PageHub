@@ -57,6 +57,6 @@ struct ToolbarConfig: Equatable {
     }
     
     var isToolbarPresented: Bool {
-        !toolbarHiddenPresentationDedents.contains(selection) || !isSheetAppeared
+        !toolbarHiddenPresentationDedents.contains(selection)
     }
 }

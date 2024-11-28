@@ -33,6 +33,9 @@ extension View {
     /// }
     /// ```
     ///
+    /// # 주의
+    /// 구현 상 내부 sheet에는 `.frame(maxHeight: .infinity)가 추가됩니다.`
+    ///
     /// - Parameters:
     ///   - config: `ToolbarConfig`를 관리하는 바인딩
     ///   - item: Sheet에 바인딩될 Identifiable 데이터
