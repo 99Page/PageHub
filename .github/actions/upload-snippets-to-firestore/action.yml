@@ -22,6 +22,7 @@ runs:
         # \n을 기준으로 파일 목록을 분리합니다. 
         IFS=$'\n'
 
+  
         for FILE in $FILES; do
           if [ -f "$FILE" ]; then
             echo "Contents of $FILE without comments:"

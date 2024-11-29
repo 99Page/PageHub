@@ -33,6 +33,9 @@ struct SheetToolbarView: View {
                 FeatureToolbarView(store: store.scope(state: \.featureToolbar, action: \.featureToolbar))
             }
         }
+        .onAppear {
+            store.send(.onAppear)
+        }
     }
     
     @ViewBuilder

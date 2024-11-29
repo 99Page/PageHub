@@ -11,6 +11,9 @@ let infoPlist: [String: Plist.Value] = [
         "CFBundleURLSchemes": [
             "com.googleusercontent.apps.754260062806-hiqu60ubfs2g1kir79tpdefvj3707ggl"
         ]
+    ],
+    "NSAppTransportSecurity": [
+        "NSAllowsArbitraryLoads": true
     ]
 ]
 

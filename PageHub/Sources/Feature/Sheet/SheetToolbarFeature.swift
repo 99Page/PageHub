@@ -7,6 +7,7 @@
 //
 
 import ComposableArchitecture
+import FirebaseFirestore
 
 @Reducer
 struct SheetToolbarFeature {
@@ -32,10 +33,13 @@ struct SheetToolbarFeature {
         case binding(BindingAction<State>)
         case plusToolbarTapped
         case minusToolbarTapped
+        case onAppear
+        case setVersion(versions: [String])
     }
     
     @Dependency(\.symbolGenerator) var symbolGeneator
     @Dependency(\.uuid) var uuid
+    @Dependency(\.featureCollectionService) var featureCollectionService
     
     var body: some ReducerOf<Self> {
         BindingReducer()
@@ -70,6 +74,14 @@ struct SheetToolbarFeature {
                 state.symbol?.removeLast()
                 return .none
             case .featureToolbar(_):
+                return .none
+            case .onAppear:
+                return .run { send in
+                    let versions = try await featureCollectionService.fetchCollection(.sheetToolbar)
+                    await send(.setVersion(versions: versions))
+                }
+            case let .setVersion(versions):
+                state.featureToolbar.codeVersions = Set(versions)
                 return .none
             }
         }

@@ -22,7 +22,8 @@ extension CodeFetchService: DependencyKey {
     
     static var liveValue: CodeFetchService {
         CodeFetchService { feature, version in
-            let snapshot = try await db.collection("snippets").document(feature).collection(version).document("codeDetails").getDocument()
+            let snapshot = try await
+            db.collection("snippets").document(feature).collection(version).document("codeDetails").getDocument()
             
             if let code = snapshot.get("code") as? String {
                 return code

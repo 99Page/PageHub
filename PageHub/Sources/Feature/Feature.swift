@@ -8,6 +8,6 @@
 
 import Foundation
 
-enum Feature {
+enum Feature: String {
     case sheetToolbar
 }
