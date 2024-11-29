@@ -1,0 +1,54 @@
+name: "Update Versions to Firestore"
+runs:
+  using: "composite"
+  steps:
+    - name: Update Snippets Version List in Firestore
+      shell: bash
+      env:
+        ACCESS_TOKEN: ${{ env.ACCESS_TOKEN }}
+
+        MIN_IOS_VERSION: ${{ env.MIN_IOS_VERSION }}
+
+        FIREBASE_PROJECT_ID: ${{ env.FIREBASE_PROJECT_ID }}
+        FIRESTORE_SNIPPETS_COLLECTION: ${{ env.FIRESTORE_SNIPPETS_COLLECTION }}
+
+        # The snippet names. Snippet can be separated by \n. 
+        # Example: feature1\nfeature2\nfeature3
+
+       
+        SNIPPETS_INPUT: ${{ env.SNIPPETS_INPUT }} 
+       
+        # A list of files containing information about the sub-snippets to be updated, including their directory paths
+        SUBSNIPPET_MAP_FILES: ${{ env.SUBSNIPPET_MAP_FILES }}
+
+      run: |
+        update_versions() {
+          local FEATURE=$1
+     
+          VERSION_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_SNIPPETS_COLLECTION/$FEATURE"
+      
+          VERSION_RESPONSE=$(curl
+            -s -w "\n%{http_code}"	 
+            -X GET \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            "$VERSION_URL")
+
+          BODY=$(echo "$RESPONSE" | sed '$d')   # 마지막 줄 제거 (응답 본문)
+          STATUS=$(echo "$RESPONSE" | tail -n 1) # 마지막 줄 (HTTP 상태 코드)
+
+          echo "Response body: $BODY"
+          echo "Status: $STATUS"
+        }
+
+        # Exit action if SNIPPETS_INPUT is Empty
+        if [ -z "$SNIPPETS_INPUT"]; then 
+          exit 0
+        fi 
+
+        echo  -e "$SNIPPETS_INPUT" | while read -r SNIPPET_NAME; do
+         update_version $SNIPPET_NAME
+        done
+
+                
+
+
