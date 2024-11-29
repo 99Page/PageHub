@@ -34,7 +34,7 @@ struct SheetToolbarFeature {
         case plusToolbarTapped
         case minusToolbarTapped
         case onAppear
-        case setVersion(versions: [String])
+        case setSnippetVersion(SnippetVersion)
     }
     
     @Dependency(\.symbolGenerator) var symbolGeneator
@@ -77,11 +77,12 @@ struct SheetToolbarFeature {
                 return .none
             case .onAppear:
                 return .run { send in
-                    let versions = try await featureCollectionService.fetchCollection(.sheetToolbar)
-                    await send(.setVersion(versions: versions))
+                    let versionResponse = try await featureCollectionService.fetchCollection(.sheetToolbar)
+                    let snippetVersion = SnippetVersion(snippetResponse: versionResponse)
+                    await send(.setSnippetVersion(snippetVersion))
                 }
-            case let .setVersion(versions):
-                state.featureToolbar.codeVersions = Set(versions)
+            case let .setSnippetVersion(snippetVersion):
+                state.featureToolbar.snippetVersion = snippetVersion
                 return .none
             }
         }

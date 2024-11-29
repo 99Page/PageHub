@@ -16,7 +16,13 @@ struct FeatureToolbarReducer {
         let featureName: String
         let symbolName = "ellipsis"
         
-        var codeVersions: Set<String> = []
+        /// nil if the data has not yet been fetched from the server or if the fetch operation failed.
+        var snippetVersion: SnippetVersion?
+        
+        init(featureName: String, snippetVersion: SnippetVersion? = nil) {
+            self.featureName = featureName
+            self.snippetVersion = snippetVersion
+        }
     }
     
     enum Action: Equatable {
@@ -40,8 +46,16 @@ struct FeatureToolbarView: View {
     var body: some View {
         Menu {
             Menu {
-                Text("18.0")
-                Text("18.1")
+                if let snippetVersion = store.snippetVersion {
+                    ForEach(snippetVersion.versions.indices, id: \.self) { index in
+                        Button {
+                            
+                        } label: {
+                            Text(snippetVersion.versions[index])
+                        }
+
+                    }
+                }
             } label: {
                 Text("코드 가져오기")
             }

@@ -11,30 +11,29 @@ import Dependencies
 import FirebaseFirestore
 
 struct FeatureCollectionService {
-    var fetchCollection: @Sendable (_ feature: Feature) async throws -> [String]
+    var fetchCollection: @Sendable (_ feature: Feature) async throws -> SnippetResponse
 }
 
 extension FeatureCollectionService: DependencyKey {
     static var liveValue: FeatureCollectionService {
         FeatureCollectionService { feature in
             let db = Firestore.firestore()
-//            let collectionRef = db.collection("testSnippets").document("sheetToolbarGroup").collection("18.0.0")
-//            let data = try await collectionRef.getDocuments()
-//            
-//            for document in data.documents {
-//                debugPrint("data: \(document.data())")
-//            }
+            let path = "testSnippets/sheetToolbarGroup"
+            let collectionRef = db.document(path)
+            let snippetData = try await collectionRef.getDocument().data()
             
-            let collectionRef = db.collection("testSnippets").document("sheetToolbarGroup")
-            debugPrint("data: \(try await collectionRef.getDocument().data())")
+            guard let snippetData, !snippetData.isEmpty else { throw FirestoreError.dataNotFound }
             
-            return []
+            let jsonData = try JSONSerialization.data(withJSONObject: snippetData)
+            let response = try JSONDecoder().decode(SnippetResponse.self, from: jsonData)
+            
+            return response
         }
     }
     
     static var previewValue: FeatureCollectionService {
         FeatureCollectionService { _ in
-            return ["18.0", "18.1"]
+            return SnippetResponse(versions: ["17.0", "18.0", "18.1"])
         }
     }
 }
