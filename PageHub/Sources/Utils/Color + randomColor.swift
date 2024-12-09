@@ -18,10 +18,9 @@ extension Color {
     }
     
     static var darkRandomColor: Color {
-        let lowRange = Double.random(in: 0...0.3) // 낮은 값
-        let highRange = Double.random(in: 0.4...0.8) // 중간 값
+        let lowRange = Double.random(in: 0...0.3)
+        let highRange = Double.random(in: 0.4...0.8) 
         
-        // 랜덤으로 채널 선택
         return Color(
             red: Bool.random() ? lowRange : highRange,
             green: Bool.random() ? lowRange : highRange,

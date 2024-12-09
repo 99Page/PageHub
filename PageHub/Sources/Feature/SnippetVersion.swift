@@ -13,7 +13,10 @@ struct SnippetVersion: Equatable {
 }
 
 extension SnippetVersion {
-    init(snippetResponse: SnippetResponse) {
-        self.versions = snippetResponse.versions
-    }
-}
+    /// Initializes an object with a sorted list of versions from the given snippet response.
+    /// - Parameters:
+    ///   - snippetResponse: The response containing the versions to sort.
+    ///   - comparator: A closure that defines the sorting criteria. Defaults to ascending order.
+    init(snippetResponse: SnippetResponse, comparator: (String, String) -> Bool = { $0 < $1 }) {
+        self.versions = snippetResponse.versions.sorted(by: comparator)
+    }}

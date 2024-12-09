@@ -8,6 +8,6 @@
 
 import Foundation
 
-enum Feature: String {
-    case sheetToolbar
+enum Feature: String, Equatable {
+    case sheetToolbar = "view_extension_sheet_config_item_content"
 }

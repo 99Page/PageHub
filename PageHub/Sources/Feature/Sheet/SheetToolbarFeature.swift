@@ -14,8 +14,7 @@ struct SheetToolbarFeature {
     @ObservableState
     struct State: Equatable {
         @Presents var symbol: SymbolFeature.State?
-        
-        var featureToolbar = FeatureToolbarReducer.State(featureName: "sheetToolbar")
+        var featureToolbar = FeatureToolbarReducer.State(feature: .sheetToolbar)
         
         var toolbarConfig = ToolbarConfig(
             presentationDedents: [.medium, .fraction(0.9)],
@@ -33,13 +32,10 @@ struct SheetToolbarFeature {
         case binding(BindingAction<State>)
         case plusToolbarTapped
         case minusToolbarTapped
-        case onAppear
-        case setSnippetVersion(SnippetVersion)
     }
     
     @Dependency(\.symbolGenerator) var symbolGeneator
     @Dependency(\.uuid) var uuid
-    @Dependency(\.featureCollectionService) var featureCollectionService
     
     var body: some ReducerOf<Self> {
         BindingReducer()
@@ -74,15 +70,6 @@ struct SheetToolbarFeature {
                 state.symbol?.removeLast()
                 return .none
             case .featureToolbar(_):
-                return .none
-            case .onAppear:
-                return .run { send in
-                    let versionResponse = try await featureCollectionService.fetchCollection(.sheetToolbar)
-                    let snippetVersion = SnippetVersion(snippetResponse: versionResponse)
-                    await send(.setSnippetVersion(snippetVersion))
-                }
-            case let .setSnippetVersion(snippetVersion):
-                state.featureToolbar.snippetVersion = snippetVersion
                 return .none
             }
         }
