@@ -9,7 +9,7 @@ let infoPlist: [String: Plist.Value] = [
     "CFBundleURLTypes": [
         "CFBundleTypeRole": "Editor",
         "CFBundleURLSchemes": [
-            "com.googleusercontent.apps.754260062806-hiqu60ubfs2g1kir79tpdefvj3707ggl"
+            "com.googleusercontent.apps.754260062806-9sij6if8v64diutv39ql0ts9pucnpn9r"
         ]
     ],
     "NSAppTransportSecurity": [
@@ -25,7 +25,7 @@ let deploymentTarget: DeploymentTargets = .iOS("18.0")
 let destinations: Destinations = .iOS
 
 let appName = "PageHub"
-let appBundleId = "com.page.pagehub"
+let appBundleId = "com.pagehub.app"
 
 let target = Target.target(
     name: appName,

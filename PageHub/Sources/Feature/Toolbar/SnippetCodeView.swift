@@ -13,56 +13,102 @@ import ComposableArchitecture
 struct SnippetCodeReducer {
     @ObservableState
     struct State: Equatable {
-        @Presents var alert: AlertState<Action.Alert>?
         let feature: Feature
-        var isVersionFetchEnded: Bool = false
         var snippetVersion: SnippetVersion?
+        var isPresented: Bool = false
+        
+        var showCode: FeatureCode?
     }
     
     @Dependency(\.snippetService) var snippetService
     
-    enum Action: Equatable {
-        case onAppear
-        case setSnippetVersion(snippetVersion: SnippetVersion)
-        case alert(PresentationAction<Alert>)
-        
-        enum Alert {
-            case snippetFetchError
-        }
+    enum Action: BindableAction, Equatable {
+        case fetchCodeTapped(version: String)
+        case setCode(code: FeatureCode)
+        case binding(BindingAction<State>)
+        case xButtonTapped
     }
     
     var body: some ReducerOf<Self> {
+        BindingReducer()
+        
         Reduce { state, action in
             switch action {
-            case .onAppear:
+            case let .fetchCodeTapped(version):
+                let feature = state.feature
+                return .run { send in
+                    do {
+                        let codeResponse = try await snippetService.fetchCode(feature, version)
+                        let code = FeatureCode(codeResponse)
+                        await send(.setCode(code: code))
+                    } catch {
+                        debugPrint("error: \(error)")
+                    }
+                }
+            case let .setCode(code):
+                
+                for scalar in code.code.unicodeScalars {
+                    print("Character: \(scalar) | Unicode: U+\(String(format: "%04X", scalar.value))")
+                }
+                
+                state.showCode = code
                 return .none
-            case let .setSnippetVersion(snippetVersion):
+            case .binding(_):
                 return .none
-            case .alert(_):
+            case .xButtonTapped:
+                state.isPresented = false
                 return .none
             }
         }
-        .ifLet(\.$alert, action: \.alert)
     }
 }
 
 struct SnippetCodeView: View {
-    let store: StoreOf<SnippetCodeReducer>
+    @Bindable var store: StoreOf<SnippetCodeReducer>
     
     var body: some View {
         if let snippetVersion = store.snippetVersion {
-            Text("Version fetched")
+            List(snippetVersion.versions.indices, id: \.self) { index in
+                Button(snippetVersion.versions[index]) {
+                    let version = snippetVersion.versions[index]
+                    store.send(.fetchCodeTapped(version: version))
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .fullScreenCover(item: $store.showCode) { item in
+                ScrollView {
+                    Text(item.code)
+                }
+                .overlay(alignment: .topTrailing) {
+                    Button {
+                        store.send(.xButtonTapped)
+                    } label: {
+                        Image(systemName: "xmark.circle")
+                    }
+                }
+            }
         } else {
             ProgressView()
-                .onAppear {
-                    store.send(.onAppear)
-                }
         }
     }
 }
 
-#Preview {
-    SnippetCodeView(store: Store(initialState: SnippetCodeReducer.State(feature: .sheetToolbar)) {
+#Preview("After fetch") {
+    
+    let snippetVersion = SnippetVersion(versions: ["18.0", "18.1"])
+    
+    let state = SnippetCodeReducer.State(feature: .sheetToolbar, snippetVersion: snippetVersion)
+    
+    SnippetCodeView(store: Store(initialState: state) {
         SnippetCodeReducer()
+            ._printChanges()
     })
 }
+
+#Preview("Before fetch") {
+    SnippetCodeView(store: Store(initialState: SnippetCodeReducer.State(feature: .sheetToolbar)) {
+        SnippetCodeReducer()
+            ._printChanges()
+    })
+}
+

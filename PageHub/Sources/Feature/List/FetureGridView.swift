@@ -33,11 +33,12 @@ struct FetureGridView: View {
     let store: StoreOf<FeatureGridFeature>
     
     var body: some View {
-        VStack {
+        List {
             NavigationLink(state: ContentFeature.Path.State.sheetToolbar(SheetToolbarFeature.State())) {
                 Text("SheetToolbar")
             }
         }
+        .navigationTitle("Features")
     }
 }
 

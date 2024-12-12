@@ -14,12 +14,13 @@ struct FeatureToolbarReducer {
     @ObservableState
     struct State: Equatable {
         let symbolName = "ellipsis"
+        let feature: Feature
         
-        var showSnippetCode = false
         var snippetCode: SnippetCodeReducer.State
         
         init(feature: Feature) {
             self.snippetCode = SnippetCodeReducer.State(feature: feature)
+            self.feature = feature
         }
     }
     
@@ -28,7 +29,6 @@ struct FeatureToolbarReducer {
         case setSnippetVersion(SnippetVersion)
         case alert(PresentationAction<Alert>)
         case fetchVersionTapped
-        case setFetchState(to: Bool)
         case binding(BindingAction<State>)
         case snippetCode(SnippetCodeReducer.Action)
         
@@ -36,6 +36,8 @@ struct FeatureToolbarReducer {
             case snippetFetchError
         }
     }
+    
+    @Dependency(\.snippetService) var snippetService
     
     var body: some ReducerOf<Self> {
         BindingReducer()
@@ -47,24 +49,22 @@ struct FeatureToolbarReducer {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                return .none
-//                return .run { send in
-//                    let versionResponse = try await snippetService.fetchSnippet(.sheetToolbar)
-//                    let snippetVersion = SnippetVersion(snippetResponse: versionResponse)
-//                    await send(.setSnippetVersion(snippetVersion))
-//                    //                    await send(.setFetchState(to: true))
-//                } catch: { _ , send in
-//                    //                    await send(.setFetchState(to: true))
-//                }
+                let feature = state.feature
+                
+                return .run { send in
+                    let versionResponse = try await snippetService.fetchSnippet(feature)
+                    let snippetVersion = SnippetVersion(snippetResponse: versionResponse)
+                    await send(.setSnippetVersion(snippetVersion))
+                } catch: { _ , send in
+                    
+                }
             case let .setSnippetVersion(snippetVersion):
+                state.snippetCode.snippetVersion = snippetVersion
                 return .none
             case .alert(_):
                 return .none
             case .fetchVersionTapped:
-                debugPrint("fetch version tapped")
-                
-                return .none
-            case let .setFetchState(newValue):
+                state.snippetCode.isPresented = true
                 return .none
             case .binding(_):
                 return .none
@@ -82,12 +82,8 @@ struct FeatureToolbarView: View {
     
     var body: some View {
         Menu {
-            Button {
-                
-            } label: {
-                HStack {
-                    Text("코드 가져오기")
-                }
+            Button("코드 가져오기") {
+                store.send(.fetchVersionTapped)
             }
         } label: {
             Image(systemName: store.symbolName)
@@ -95,8 +91,9 @@ struct FeatureToolbarView: View {
         .onAppear {
             store.send(.onAppear)
         }
-        .sheet(isPresented: $store.showSnippetCode) {
-            SnippetCodeView(store: store.scope(state: \.showSnippetCode, action: \.showSnippetCode))
+        .sheet(isPresented: $store.snippetCode.isPresented) {
+            SnippetCodeView(store: store.scope(state: \.snippetCode, action: \.snippetCode))
+                .presentationDetents([.medium])
         }
         
     }
@@ -105,5 +102,6 @@ struct FeatureToolbarView: View {
 #Preview {
     FeatureToolbarView(store: Store(initialState: FeatureToolbarReducer.State(feature: .sheetToolbar)) {
         FeatureToolbarReducer()
+            ._printChanges()
     })
 }

@@ -9,6 +9,7 @@
 import Foundation
 import FirebaseFirestore
 
+
 struct DocFetcher {
     /// Fetches a document from Firestore and decodes it into the specified type.
     /// - Parameters:

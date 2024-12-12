@@ -55,41 +55,6 @@ struct SheetFeatureTests {
         }
     }
     
-    @Test(arguments: [["18.0"], ["18.0", "18.1"]])
-    func onAppear_ShouldSetFeatureToolbarVersions(versions: [String]) async throws {
-        let snippetVersion = SnippetVersion(versions: versions)
-        
-        let store = await TestStore(initialState: SheetToolbarFeature.State()) {
-            SheetToolbarFeature()
-        } withDependencies: {
-            $0.snippetService.fetchSnippet = { _ in
-                SnippetResponse(versions: versions)
-            }
-        }
-        
-        await store.send(.onAppear)
-        
-        await store.receive(.setSnippetVersion(snippetVersion)) {
-            $0.featureToolbar.snippetVersion = snippetVersion
-        }
-    }
-    
-    @Test
-    func onApper_WhenFetchSnippetVersionFailed_ShouldShowAlert() async throws {
-        let store = await TestStore(initialState: SheetToolbarFeature.State()) {
-            SheetToolbarFeature()
-        } withDependencies: {
-            $0.snippetService.fetchSnippet = { _ in
-                throw FirestoreError.dataNotFound
-            }
-        }
-        
-        await store.send(.onAppear)
-        await store.receive(.showAlert(.snippetFetchError))
-        
-        #expect(store.state.alert != nil)
-    }
-    
     func createTestStore(
         initialState: SheetToolbarFeature.State = SheetToolbarFeature.State(),
         withDependencies dependencies: (inout DependencyValues) -> Void = { _ in }
