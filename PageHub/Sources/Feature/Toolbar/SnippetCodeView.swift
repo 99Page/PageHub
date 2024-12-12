@@ -8,6 +8,7 @@
 
 import SwiftUI
 import ComposableArchitecture
+import HighlightSwift
 
 @Reducer
 struct SnippetCodeReducer {
@@ -77,7 +78,8 @@ struct SnippetCodeView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .fullScreenCover(item: $store.showCode) { item in
                 ScrollView {
-                    Text(item.code)
+                    CodeText(item.code)
+                        .highlightLanguage(.swift)
                 }
                 .overlay(alignment: .topTrailing) {
                     Button {
