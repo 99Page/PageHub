@@ -22,7 +22,6 @@ jobs:
         FIRESTORE_CODEDETAILS_DOCUMENT: ${{ secrets.FIRESTORE_CODEDETAILS_DOCUMENT }}
         FIRESTORE_SUBSNIPPETS_DOCUMENT: ${{ secrets.FIRESTORE_SUBSNIPPETS_DOCUMENT }}
         
-
     steps:
     - uses: actions/checkout@v4
     
@@ -42,6 +41,12 @@ jobs:
         echo "FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID" >> $GITHUB_ENV
         echo "FIRESTORE_TEST_SNIPPETS_COLLECTION=$FIRESTORE_TEST_SNIPPETS_COLLECTION" >> $GITHUB_ENV
         echo "FIRESTORE_CODEDETAILS_DOCUMENT=$FIRESTORE_CODEDETAILS_DOCUMENT" >> $GITHUB_ENV
+        
+    - name: Set up Snippet ID to GITHUB_ENV
+      uses: ./.github/actions/set-snippet-id
+      with:
+        FILES: ${{ github.event.inputs.SNIPPET_PATH }}
+        COLLECTION: "testSnippetMappings"
 
     - name: Update Snippets to Firestore
       uses: ./.github/actions/upload-snippets-to-firestore 

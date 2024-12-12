@@ -29,8 +29,8 @@ jobs:
       with:
         GOOGLE_CLOUD_SERVICE_KEY: ${{ secrets.PAGEHUB_SERVICE }}
         FIREBASE_SERVICE_KEY: ${{ secrets.FIREBASE_SERVICE_KEY }}
-
-    - name: Set Up Environment Variables to Update Snippets 
+      
+    - name: Set Up Environment Variables to Update Snippets
       run: |
         ACCESS_TOKEN=$(./google-cloud-sdk/bin/gcloud auth print-access-token)
         echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
