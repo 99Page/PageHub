@@ -25,43 +25,48 @@ runs:
 
             echo "Snippet name is $SNIPPET"
 
-            FIRESTORE_SNIPPET_READ_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_SNIPPETS_COLLECTION/$SNIPPET/$MIN_IOS_VERSION"
+            SNIPPET_ID_VARIABLE=${SNIPPET}_id
+            SNIPPET_ID=${!SNIPPET_ID_VARIABLE}
 
-            echo "GET URL: $FIRESTORE_SNIPPET_READ_URL"
+            FIRESTORE_SNIPPET_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_SNIPPETS_COLLECTION/$SNIPPET_ID/versions/$MIN_IOS_VERSION"
 
+            echo "GET URL: $FIRESTORE_SNIPPET_URL"
 
             # Check if the sub-snippet to be updated exists
-            RESPONSE=$(curl -s \
-              -o /dev/null \
+            HTTP_RESPONSE=$(curl -s \
               -w "%{http_code}" \
               -H "Authorization: Bearer $ACCESS_TOKEN" \
-              "$FIRESTORE_SNIPPET_READ_URL")
+              "$FIRESTORE_SNIPPET_URL")
 
-            if [ "$RESPONSE" -eq 200 ]; then
+            HTTP_STATUS=$(echo "$HTTP_RESPONSE" | tail -c 4)
+            RESPONSE=$(echo "$HTTP_RESPONSE" | sed '$ d')
+
+            if [ "$HTTP_STATUS" -eq 200 ]; then
               echo "The given snippet exist"
 
-              jq -c 'to_entries[] | {key: .key, value: .value}' "$FILE" | while IFS=$'\n' read -r ENTRY; do
-                KEY=$(echo "$ENTRY" | jq -r '.key')
-                ARRAY_JSON=$(echo "$ENTRY" | jq -c '.value')
+              #tmp 
+              jq '.' "$FILE"
+              
+              SUBSNIPPETS_JSON=$(jq -c '.subsnippets' "$FILE")
 
-                FIRESTORE_SUBSNIPPET_UPDATE_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_SNIPPETS_COLLECTION/$SNIPPET/$MIN_IOS_VERSION/$FIRESTORE_SUBSNIPPETS_DOCUMENT"
+              #tmp 
+              echo "SUBSNIPPETS_JSON: $SUBSNIPPETS_JSON"
 
-                echo "Subsnippet update url: $FIRESTORE_SUBSNIPPET_UPDATE_URL"
+              SUBSNIPPET_VALUES=$(echo "$SUBSNIPPETS_JSON" | jq -c '[.[] | {stringValue: .}]')
 
-                curl -X PATCH \
-                  -H "Authorization: Bearer $ACCESS_TOKEN" \
-                  -H "Content-Type: application/json" \
-                  "$FIRESTORE_SUBSNIPPET_UPDATE_URL" \
-                   -d '{
-                      "fields": {
-                        "arrayField": {
-                          "arrayValue": {
-                            "values": '"$(echo "$ARRAY_JSON" | jq '[.[] | {stringValue: .}]')"'
-                          }
-                        }
-                      }
-                    }' || exit 1     
-              done
+              # tmp 
+              echo "SUBSNIPPET_VALUES: $SUBSNIPPET_VALUES"
+              REQUEST_BODY=$(echo "$RESPONSE" | jq --argjson subsnippets "$SUBSNIPPET_VALUES" '.fields.subsnippets.arrayValue.values = $subsnippets')
+
+              # tmp 
+              echo "REQUEST_BODY: $REQUEST_BODY"
+
+              curl -X PATCH \
+                -H "Authorization: Bearer $ACCESS_TOKEN" \
+                -H "Content-Type: application/json" \
+                "$FIRESTORE_SNIPPET_URL" \
+                -d "$REQUEST_BODY" || exit 1  
+
 
             else
               echo "The given snippet does not exist"

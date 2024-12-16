@@ -22,13 +22,64 @@ runs:
         # \n을 기준으로 파일 목록을 분리합니다. 
         IFS=$'\n'
 
+        set_subsnippet_values() {
+          local SUBSNIPPET_NAME=$1
+          SUBSNIPPET_MAPPING_PATH=PageHub/Resources/SubsnippetMap/${SUBSNIPPET_NAME}.json
+
+          if [[ -f "$SUBSNIPPET_MAPPING_PATH" ]]; then 
+            SUBSNIPPETS_JSON=$(jq -c '.subsnippets' "$SUBSNIPPET_MAPPING_PATH")
+            SUBSNIPPET_VALUES=$(echo "$SUBSNIPPETS_JSON" | jq -c '[.[] | {stringValue: .}]')
+          fi
+        }
+
+        post_snippet() {
+          local CODE="$1"
+          local SUBSNIPPET="$2"
+
+          REQUEST_BODY='{}'
+          REQUEST_BODY=$(echo "$REQUEST_BODY" | \
+            jq --arg codeValue "$CODE" \
+              --argjson subsnippetValue "$SUBSNIPPET" '
+              .fields.code.stringValue = $codeValue |
+              .fields.subsnippets.arrayValue.values = $subsnippetValue
+           ')
+
+          curl -X POST \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "Content-Type: application/json" \
+              "$FIRESTORE_CREATE_URL" \
+              -d "$REQUEST_BODY" || exit 1
+
+          echo "Snippet created with POST."
+        }
+
+        patch_snippet() {
+          local CODE="$1"
+          local SUBSNIPPET="$2"
+
+          REQUEST_BODY=$(echo "$RESPONSE" | \
+            jq --arg codeValue "$CODE" \
+              --argjson subsnippetValue "$SUBSNIPPET" '
+              .fields.code.stringValue = $codeValue |
+              .fields.subsnippets.arrayValue.values = $subsnippetValue
+            ')
+
+          curl -X PATCH \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            "$FIRESTORE_READ_UPDATE_URL" \
+            -d "$REQUEST_BODY" || exit 1
+
+          echo "Document updated with PATCH."
+        }
   
         for FILE in $FILES; do
           if [ -f "$FILE" ]; then
-            echo "Contents of $FILE without comments:"
-
             DOCUMENT=$(echo "$FILE" | sed -E 's|.*/||; s|\.swift$||' | awk '{print tolower(substr($0,1,1)) substr($0,2)}')
             echo "Document name is $DOCUMENT"
+
+            SUBSNIPPET_VALUES='[]'
+            set_subsnippet_values $DOCUMENT
 
             # Delete lines that start with // (comments)
             # Escape backslash (\)
@@ -38,47 +89,31 @@ runs:
             CODE=$(echo "$CODE" | sed -E 's/"/\\"/g')
 
             # Escape newline (\n)
-            CODE=$(echo "$CODE" | sed ':a;N;$!ba;s/\n/\\n/g')
+            CODE=$(echo "$CODE" | sed -E ':a;N;$!ba;s/\n/\\n/g')
 
-            FIRESTORE_READ_UPDATE_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$DOCUMENT/$MIN_IOS_VERSION/$FIRESTORE_CODEDETAILS_DOCUMENT"
-            FIRESTORE_CREATE_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$DOCUMENT/$MIN_IOS_VERSION?documentId=$FIRESTORE_CODEDETAILS_DOCUMENT"
+            SNIPPET_ID_VARIABLE=${DOCUMENT}_id
+            SNIPPET_ID=${!SNIPPET_ID_VARIABLE}
 
-            RESPONSE=$(curl -s \
-              -o /dev/null \
+            FIRESTORE_READ_UPDATE_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$SNIPPET_ID/versions/$MIN_IOS_VERSION"
+            FIRESTORE_CREATE_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$SNIPPET_ID/versions?documentId=$MIN_IOS_VERSION"
+
+            echo "URL: "$FIRESTORE_READ_UPDATE_URL""
+
+            HTTP_RESPONSE=$(curl -s \
               -w "%{http_code}" \
               -H "Authorization: Bearer $ACCESS_TOKEN" \
               "$FIRESTORE_READ_UPDATE_URL")
 
-            echo "Response: $RESPONSE"
+            HTTP_STATUS=$(echo "$HTTP_RESPONSE" | tail -c 4)
+            RESPONSE=$(echo "$HTTP_RESPONSE" | sed '$ d')
 
-            if [ "$RESPONSE" -eq 200 ]; then
-              curl -X PATCH \
-              -f \
-              -H "Authorization: Bearer $ACCESS_TOKEN" \
-              -H "Content-Type: application/json" \
-              "$FIRESTORE_READ_UPDATE_URL" \
-              -d '{
-                "fields": {
-                  "code": {
-                    "stringValue": "'"${CODE}"'"
-                  }
-                }
-              }' || exit 1
-              echo "Document updated with PATCH."
+            echo "Response: $RESPONSE"
+            echo "HTTP_STATUS: $HTTP_STATUS"
+
+            if [ "$HTTP_STATUS" -eq 200 ]; then
+              patch_snippet "$CODE" "$SUBSNIPPET_VALUES"
             else
-              curl -X POST \
-              -f \
-              -H "Authorization: Bearer $ACCESS_TOKEN" \
-              -H "Content-Type: application/json" \
-              "$FIRESTORE_CREATE_URL" \
-              -d '{
-                "fields": {
-                  "code": {
-                    "stringValue": "'"${CODE}"'"
-                  }
-                }
-              }' || exit 1
-              echo "Document created with POST."
+              post_snippet "$CODE" "$SUBSNIPPET_VALUES"
             fi
           else
             echo "File $FILE does not exist."
