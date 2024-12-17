@@ -1,5 +1,5 @@
 //
-//  SheetToolbarFeature.swift
+//  SheetToolbarReducer.swift
 //  PageHub
 //
 //  Created by 노우영 on 11/28/24.
@@ -10,7 +10,7 @@ import ComposableArchitecture
 import FirebaseFirestore
 
 @Reducer
-struct SheetToolbarFeature {
+struct SheetToolbarReducer {
     @ObservableState
     struct State: Equatable {
         @Presents var symbol: SymbolFeature.State?

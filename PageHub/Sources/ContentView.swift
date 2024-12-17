@@ -19,16 +19,16 @@ struct ContentFeature {
     struct Path {
         @ObservableState
         enum State: Equatable {
-            case sheetToolbar(SheetToolbarFeature.State)
+            case sheetToolbar(SheetToolbarReducer.State)
         }
         
         enum Action: Equatable {
-            case sheetToolbar(SheetToolbarFeature.Action)
+            case sheetToolbar(SheetToolbarReducer.Action)
         }
         
         var body: some ReducerOf<Self> {
             Scope(state: \.sheetToolbar, action: \.sheetToolbar) {
-                SheetToolbarFeature()
+                SheetToolbarReducer()
             }
         }
     }

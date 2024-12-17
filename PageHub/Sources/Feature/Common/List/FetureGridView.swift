@@ -34,7 +34,7 @@ struct FetureGridView: View {
     
     var body: some View {
         List {
-            NavigationLink(state: ContentFeature.Path.State.sheetToolbar(SheetToolbarFeature.State())) {
+            NavigationLink(state: ContentFeature.Path.State.sheetToolbar(SheetToolbarReducer.State())) {
                 Text("SheetToolbar")
             }
         }
