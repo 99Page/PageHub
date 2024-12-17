@@ -13,8 +13,12 @@ import SwiftUI
 struct FeatureToolbarReducer {
     @ObservableState
     struct State: Equatable {
+        
+        @Presents var alert: AlertState<Action.Alert>?
         let symbolName = "ellipsis"
         let feature: Feature
+        
+        var isFailedToFetch = false
         
         var featureVersion: FeatureVersionReducer.State
         
@@ -25,15 +29,17 @@ struct FeatureToolbarReducer {
     }
     
     enum Action: BindableAction, Equatable {
+        case alert(PresentationAction<Alert>)
         case onAppear
         case setSnippetVersion(SnippetVersion)
-        case alert(PresentationAction<Alert>)
         case fetchVersionTapped
         case binding(BindingAction<State>)
         case snippetCode(FeatureVersionReducer.Action)
+        case snippetFetchFail
         
+        @CasePathable
         enum Alert {
-            case snippetFetchError
+            case ok
         }
     }
     
@@ -56,7 +62,7 @@ struct FeatureToolbarReducer {
                     let snippetVersion = SnippetVersion(snippetResponse: versionResponse)
                     await send(.setSnippetVersion(snippetVersion))
                 } catch: { _ , send in
-                    
+                    await send(.snippetFetchFail)
                 }
             case let .setSnippetVersion(snippetVersion):
                 state.featureVersion.snippetVersion = snippetVersion
@@ -64,11 +70,26 @@ struct FeatureToolbarReducer {
             case .alert(_):
                 return .none
             case .fetchVersionTapped:
-                state.featureVersion.isPresented = true
+                if state.isFailedToFetch {
+                    state.alert = AlertState {
+                        TextState("코드를 불러오지 못했습니다.")
+                    } actions: {
+                        ButtonState(action: .ok) {
+                            TextState("확인")
+                        }
+                    } message: {
+                        TextState("개발자가 실수가 있습니다ㅠㅠ")
+                    }
+                } else {
+                    state.featureVersion.isPresented = true
+                }
                 return .none
             case .binding(_):
                 return .none
             case .snippetCode(_):
+                return .none
+            case .snippetFetchFail:
+                state.isFailedToFetch = true
                 return .none
             }
         }
@@ -95,13 +116,24 @@ struct FeatureToolbarView: View {
             FeatureVersionView(store: store.scope(state: \.featureVersion, action: \.snippetCode))
                 .presentationDetents([.medium])
         }
+        .alert($store.scope(state: \.alert, action: \.alert))
         
     }
 }
+
 
 #Preview {
     FeatureToolbarView(store: Store(initialState: FeatureToolbarReducer.State(feature: .sheetToolbar)) {
         FeatureToolbarReducer()
             ._printChanges()
+    })
+}
+
+#Preview("Fetch fail") {
+    FeatureToolbarView(store: Store(initialState: FeatureToolbarReducer.State(feature: .sheetToolbar)) {
+        FeatureToolbarReducer()
+            ._printChanges()
+    } withDependencies: {
+        $0.snippetService = .failValue
     })
 }

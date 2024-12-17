@@ -60,6 +60,15 @@ extension SnippetService: DependencyKey {
             return [FeatureCodeResponse(code: "Hello, world!", subsnippets: [])]
         }
     }
+    
+    static var failValue: SnippetService {
+        SnippetService { _ in
+            throw FirestoreError.dataNotFound
+        } fetchCode: { _, _, _ in
+            throw FirestoreError.dataNotFound
+        }
+
+    }
 }
 
 extension DependencyValues {
