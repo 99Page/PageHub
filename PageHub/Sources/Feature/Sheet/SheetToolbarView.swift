@@ -23,11 +23,12 @@ struct SheetToolbarView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationBarBackButtonHidden(store.symbol != nil)
-        .sheet(config: $store.toolbarConfig, item: $store.scope(state: \.symbol, action: \.symbol)) { symbolStore in
-            sheetView(symbolStore: symbolStore)
-        } toolbar: {
-            toolbarView()
-        }
+        .sheet(
+            config: $store.toolbarConfig,
+            item: $store.scope(state: \.symbol, action: \.symbol),
+            content: sheetView,
+            toolbar: toolbarView
+        )
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 FeatureToolbarView(store: store.scope(state: \.featureToolbar, action: \.featureToolbar))
@@ -45,12 +46,13 @@ struct SheetToolbarView: View {
     }
     
     private func toolbarView() -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 10) {  
             Button {
                 store.send(.plusToolbarTapped)
             } label: {
                 Image(systemName: "plus.circle")
-                    .resizable()
+                    .resizable(resizingMode: .tile)
+                    .aspectRatio(contentMode: .fit)
                     .frame(width: 30, height: 30)
             }
             

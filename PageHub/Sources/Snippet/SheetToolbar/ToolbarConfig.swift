@@ -15,17 +15,14 @@ struct ToolbarConfig: Equatable {
     let alignment: Alignment
     let toolbarHiddenPresentationDedents: Set<PresentationDetent>
     
-    var isSheetAppeared: Bool = false
-    
     /// 툴바가 따라갈 수 있는 최소 높이로 설정된 프랙션 값
     private let minimumToolbarHeightFraction: PresentationDetent = .fraction(0.01)
     
     static func == (lhs: ToolbarConfig, rhs: ToolbarConfig) -> Bool {
-        lhs.presentationDedents == rhs.presentationDedents &&
-        lhs.selection == rhs.selection &&
-        lhs.alignment == rhs.alignment &&
-        lhs.toolbarHiddenPresentationDedents == rhs.toolbarHiddenPresentationDedents &&
-        lhs.isSheetAppeared == rhs.isSheetAppeared
+        lhs.presentationDedents == rhs.presentationDedents
+        && lhs.selection == rhs.selection
+        && lhs.alignment == rhs.alignment
+        && lhs.toolbarHiddenPresentationDedents == rhs.toolbarHiddenPresentationDedents
         // backgroundInteraction은 비교하지 않음
     }
     

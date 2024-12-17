@@ -15,7 +15,7 @@ struct SheetToolbarFeature {
     struct State: Equatable {
         @Presents var symbol: SymbolFeature.State?
         var featureToolbar = FeatureToolbarReducer.State(feature: .sheetToolbar)
-        
+       
         var toolbarConfig = ToolbarConfig(
             presentationDedents: [.medium, .fraction(0.9)],
             selection: .medium,
