@@ -10,8 +10,8 @@ import SwiftUI
 import ComposableArchitecture
 import HighlightSwift
 
-struct SnippetCodeView: View {
-    @Bindable var store: StoreOf<SnippetCodeReducer>
+struct FeatureVersionView: View {
+    @Bindable var store: StoreOf<FeatureVersionReducer>
     
     var body: some View {
         if let snippetVersion = store.snippetVersion {
@@ -52,17 +52,17 @@ struct SnippetCodeView: View {
     
     let snippetVersion = SnippetVersion(versions: ["18.0", "18.1"])
     
-    let state = SnippetCodeReducer.State(feature: .sheetToolbar, snippetVersion: snippetVersion)
+    let state = FeatureVersionReducer.State(feature: .sheetToolbar, snippetVersion: snippetVersion)
     
-    SnippetCodeView(store: Store(initialState: state) {
-        SnippetCodeReducer()
+    FeatureVersionView(store: Store(initialState: state) {
+        FeatureVersionReducer()
             ._printChanges()
     })
 }
 
 #Preview("Before fetch") {
-    SnippetCodeView(store: Store(initialState: SnippetCodeReducer.State(feature: .sheetToolbar)) {
-        SnippetCodeReducer()
+    FeatureVersionView(store: Store(initialState: FeatureVersionReducer.State(feature: .sheetToolbar)) {
+        FeatureVersionReducer()
             ._printChanges()
     })
 }

@@ -9,7 +9,7 @@
 import ComposableArchitecture
 
 @Reducer
-struct SnippetCodeReducer {
+struct FeatureVersionReducer {
     @ObservableState
     struct State: Equatable {
         let feature: Feature

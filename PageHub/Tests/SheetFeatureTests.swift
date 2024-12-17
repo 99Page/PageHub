@@ -24,8 +24,8 @@ struct SheetFeatureTests {
     
     @Test
     func plusButtonTapped_ShouldPresentSymbolView() async throws {
-        let store = await TestStore(initialState: SheetToolbarFeature.State()) {
-            SheetToolbarFeature()
+        let store = await TestStore(initialState: SheetToolbarReducer.State()) {
+            SheetToolbarReducer()
         } withDependencies: {
             $0.uuid = .incrementing
         }
@@ -48,7 +48,7 @@ struct SheetFeatureTests {
     @Test
     func minusButtonTapped_WhenSymbolIsAdded_ShouldRemoveLastSymbol() async throws {
         let symbolState = SymbolFeature.State(symbolStyles: [.randomStyle])
-        let sheetState = SheetToolbarFeature.State(symbol: symbolState)
+        let sheetState = SheetToolbarReducer.State(symbol: symbolState)
         let store = await createTestStore(initialState: sheetState)
         await store.send(.minusToolbarTapped) {
             $0.symbol?.symbolStyles = []
@@ -56,11 +56,11 @@ struct SheetFeatureTests {
     }
     
     func createTestStore(
-        initialState: SheetToolbarFeature.State = SheetToolbarFeature.State(),
+        initialState: SheetToolbarReducer.State = SheetToolbarReducer.State(),
         withDependencies dependencies: (inout DependencyValues) -> Void = { _ in }
-    ) async -> TestStore<SheetToolbarFeature.State, SheetToolbarFeature.Action> {
+    ) async -> TestStore<SheetToolbarReducer.State, SheetToolbarReducer.Action> {
         await TestStore(initialState: initialState, reducer: {
-            SheetToolbarFeature()
+            SheetToolbarReducer()
         }, withDependencies: dependencies)
     }
 }

@@ -11,7 +11,7 @@ import SwiftUI
 
 struct SheetToolbarView: View {
     
-    @Bindable var store: StoreOf<SheetToolbarFeature>
+    @Bindable var store: StoreOf<SheetToolbarReducer>
     
     var body: some View {
         VStack {
@@ -70,8 +70,8 @@ struct SheetToolbarView: View {
 }
 
 #Preview {
-    SheetToolbarView(store: Store(initialState: SheetToolbarFeature.State()) {
-        SheetToolbarFeature()
+    SheetToolbarView(store: Store(initialState: SheetToolbarReducer.State()) {
+        SheetToolbarReducer()
             ._printChanges()
     })
 }
