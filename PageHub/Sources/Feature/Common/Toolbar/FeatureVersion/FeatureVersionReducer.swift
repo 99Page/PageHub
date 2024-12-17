@@ -10,8 +10,12 @@ import ComposableArchitecture
 
 @Reducer
 struct FeatureVersionReducer {
+    typealias Version = String
+    
     @ObservableState
     struct State: Equatable {
+        @Presents var alert: AlertState<AlertAction>?
+        
         let feature: Feature
         var snippetVersion: SnippetVersion?
         var isPresented: Bool = false
@@ -23,10 +27,17 @@ struct FeatureVersionReducer {
     @Dependency(\.clipboardManager) var clipBoardManager
     
     enum Action: BindableAction, Equatable {
-        case fetchCodeTapped(version: String)
-        case setCode(code: FeatureCode)
+        case alert(PresentationAction<AlertAction>)
+        case fetchCode(version: Version)
+        case updateCode(code: FeatureCode)
         case binding(BindingAction<State>)
-        case xButtonTapped
+        case dismissCodeView
+        case showServiceErrorAlert
+    }
+    
+    @CasePathable
+    enum AlertAction {
+        case ok
     }
     
     var body: some ReducerOf<Self> {
@@ -34,7 +45,7 @@ struct FeatureVersionReducer {
         
         Reduce { state, action in
             switch action {
-            case let .fetchCodeTapped(version):
+            case let .fetchCode(version):
                 let feature = state.feature
                 return .run { send in
                     do {
@@ -42,21 +53,35 @@ struct FeatureVersionReducer {
                         visited.insert(feature.rawValue)
                         let codeResponse = try await snippetService.fetchCode(feature.rawValue, version, &visited)
                         let code = FeatureCode(codeResponse)
-                        await send(.setCode(code: code))
+                        await send(.updateCode(code: code))
                     } catch {
-                        debugPrint("error: \(error)")
+                        await send(.showServiceErrorAlert)
                     }
                 }
-            case let .setCode(code):
+            case let .updateCode(code):
                 state.showCode = code
                 clipBoardManager.copyToClipboard(code.code)
                 return .none
             case .binding(_):
                 return .none
-            case .xButtonTapped:
+            case .dismissCodeView:
                 state.isPresented = false
+                return .none
+            case .alert(_):
+                return .none
+            case .showServiceErrorAlert:
+                state.alert = AlertState {
+                    TextState("코드를 불러오지 못했습니다.")
+                } actions: {
+                    ButtonState(action: .ok) {
+                        TextState("확인")
+                    }
+                } message: {
+                    TextState("개발자의 실수가 있습니다ㅠㅠ")
+                }
                 return .none
             }
         }
+        .ifLet(\.$alert, action: \.alert)
     }
 }

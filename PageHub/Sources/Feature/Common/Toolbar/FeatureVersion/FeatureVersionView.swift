@@ -18,11 +18,12 @@ struct FeatureVersionView: View {
             List(snippetVersion.versions.indices, id: \.self) { index in
                 Button(snippetVersion.versions[index]) {
                     let version = snippetVersion.versions[index]
-                    store.send(.fetchCodeTapped(version: version))
+                    store.send(.fetchCode(version: version))
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .fullScreenCover(item: $store.showCode, content: buildCodeText)
+            .alert($store.scope(state: \.alert, action: \.alert))
         } else {
             ProgressView()
         }
@@ -40,7 +41,7 @@ struct FeatureVersionView: View {
         .contentMargins([.horizontal, .top], 10, for: .scrollContent)
         .overlay(alignment: .topTrailing) {
             Button {
-                store.send(.xButtonTapped)
+                store.send(.dismissCodeView)
             } label: {
                 Image(systemName: "xmark.circle")
             }
@@ -67,3 +68,13 @@ struct FeatureVersionView: View {
     })
 }
 
+#Preview("Fail to fetch") {
+    let version = SnippetVersion(versions: ["18.0"])
+    
+    return FeatureVersionView(store: Store(initialState: FeatureVersionReducer.State(feature: .sheetToolbar, snippetVersion: version)) {
+        FeatureVersionReducer()
+            ._printChanges()
+    } withDependencies: {
+        $0.snippetService = .failValue
+    })
+}
