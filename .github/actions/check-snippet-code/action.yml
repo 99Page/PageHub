@@ -39,14 +39,15 @@ runs:
           # Mark the snippet as visited
           echo "$SNIPPET" >> "$VISITED_SNIPPETS"
 
-          CODE_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$SNIPPET/$MIN_IOS_VERSION/$FIRESTORE_CODEDETAILS_DOCUMENT"
-          SUBSNIPPETS_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$SNIPPET/$MIN_IOS_VERSION/$FIRESTORE_SUBSNIPPETS_DOCUMENT"
+          SNIPPET_ID_VARIABLE=${SNIPPET}_id
+          SNIPPET_ID=${!SNIPPET_ID_VARIABLE}
 
-          
+          SNIPPET_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$SNIPPET_ID/versions/$MIN_IOS_VERSION"
+
           # Fetch code
           SNIPPET_RESPONSE=$(curl -s \
             -H "Authorization: Bearer $ACCESS_TOKEN" \
-            "$CODE_URL")
+            "$SNIPPET_URL")
           
           # Extract 'code' and append it to Testing.swift
           CODE=$(echo "$SNIPPET_RESPONSE" | jq -r '.fields.code.stringValue')
@@ -54,13 +55,10 @@ runs:
             echo "$CODE" >> Testing.swift
           fi
 
-          # Fetch subsnippet
-          SNIPPET_RESPONSE=$(curl -s \
-            -H "Authorization: Bearer $ACCESS_TOKEN" \
-            "$SUBSNIPPETS_URL")
+          # Extract 'subsnippets'
 
           # Extract 'subsnippets' if they exist
-          SUBSNIPPETS=($(echo "$SNIPPET_RESPONSE" | jq -r '.. | .stringValue? // empty'))
+          SUBSNIPPETS=$(echo "$SNIPPET_RESPONSE" | jq -r '.fields.subsnippets.arrayValue.values')
          
           # Process each subsnippet recursively
           for SUBSNIPPET in "${SUBSNIPPETS[@]}"; do
