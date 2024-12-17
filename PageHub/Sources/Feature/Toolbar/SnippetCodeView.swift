@@ -22,6 +22,7 @@ struct SnippetCodeReducer {
     }
     
     @Dependency(\.snippetService) var snippetService
+    @Dependency(\.clipboardManager) var clipBoardManager
     
     enum Action: BindableAction, Equatable {
         case fetchCodeTapped(version: String)
@@ -39,7 +40,9 @@ struct SnippetCodeReducer {
                 let feature = state.feature
                 return .run { send in
                     do {
-                        let codeResponse = try await snippetService.fetchCode(feature, version)
+                        var visited: Set<String> = []
+                        visited.insert(feature.rawValue)
+                        let codeResponse = try await snippetService.fetchCode(feature.rawValue, version, &visited)
                         let code = FeatureCode(codeResponse)
                         await send(.setCode(code: code))
                     } catch {
@@ -47,12 +50,8 @@ struct SnippetCodeReducer {
                     }
                 }
             case let .setCode(code):
-                
-                for scalar in code.code.unicodeScalars {
-                    print("Character: \(scalar) | Unicode: U+\(String(format: "%04X", scalar.value))")
-                }
-                
                 state.showCode = code
+                clipBoardManager.copyToClipboard(code.code)
                 return .none
             case .binding(_):
                 return .none
@@ -76,21 +75,28 @@ struct SnippetCodeView: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .fullScreenCover(item: $store.showCode) { item in
-                ScrollView {
-                    CodeText(item.code)
-                        .highlightLanguage(.swift)
-                }
-                .overlay(alignment: .topTrailing) {
-                    Button {
-                        store.send(.xButtonTapped)
-                    } label: {
-                        Image(systemName: "xmark.circle")
-                    }
-                }
-            }
+            .fullScreenCover(item: $store.showCode, content: buildCodeText)
         } else {
             ProgressView()
+        }
+    }
+    
+    private func buildCodeText(featureCode: FeatureCode) -> some View {
+        ScrollView([.horizontal, .vertical]) {
+            CodeText(featureCode.code)
+                .highlightLanguage(.swift)
+                .fixedSize(horizontal: true, vertical: false)
+                .layoutPriority(1)
+                .font(.caption)
+                .frame(maxWidth: .infinity)
+        }
+        .contentMargins([.horizontal, .top], 10, for: .scrollContent)
+        .overlay(alignment: .topTrailing) {
+            Button {
+                store.send(.xButtonTapped)
+            } label: {
+                Image(systemName: "xmark.circle")
+            }
         }
     }
 }

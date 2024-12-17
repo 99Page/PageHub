@@ -14,7 +14,25 @@ struct FeatureCode: Identifiable, Equatable {
 }
 
 extension FeatureCode {
-    init(_ response: FeatureCodeResponse) {
-        self.code = response.code
+    init(_ responses: [FeatureCodeResponse]) {
+        // Step 1: 모든 response를 라인 단위로 나누고 import와 나머지 분리
+        var importLines: Set<String> = [] // 중복 제거를 위해 Set 사용
+        var otherLines: [String] = []
+        
+        for response in responses {
+            let lines = response.code.components(separatedBy: "\n") // 라인별 분리
+            for line in lines {
+                let trimmedLine = line.trimmingCharacters(in: .whitespaces)
+                if trimmedLine.hasPrefix("import") {
+                    importLines.insert(trimmedLine) // 중복 제거
+                } else {
+                    otherLines.append(line) // 나머지 라인은 그대로 추가
+                }
+            }
+        }
+        
+        // Step 2: import 라인을 정렬(선택 사항)하고 다른 라인과 결합
+        let sortedImportLines = importLines.sorted() // 중복 제거 후 정렬
+        self.code = (sortedImportLines + otherLines).joined(separator: "\n")
     }
 }

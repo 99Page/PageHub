@@ -10,5 +10,5 @@ import Foundation
 
 struct FeatureCodeResponse: Decodable {
     let code: String
-//    let subsnippets: [String]
+    let subsnippets: [String]
 }
