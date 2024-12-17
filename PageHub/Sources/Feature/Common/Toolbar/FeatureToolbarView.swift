@@ -16,10 +16,10 @@ struct FeatureToolbarReducer {
         let symbolName = "ellipsis"
         let feature: Feature
         
-        var snippetCode: SnippetCodeReducer.State
+        var featureVersion: FeatureVersionReducer.State
         
         init(feature: Feature) {
-            self.snippetCode = SnippetCodeReducer.State(feature: feature)
+            self.featureVersion = FeatureVersionReducer.State(feature: feature)
             self.feature = feature
         }
     }
@@ -30,7 +30,7 @@ struct FeatureToolbarReducer {
         case alert(PresentationAction<Alert>)
         case fetchVersionTapped
         case binding(BindingAction<State>)
-        case snippetCode(SnippetCodeReducer.Action)
+        case snippetCode(FeatureVersionReducer.Action)
         
         enum Alert {
             case snippetFetchError
@@ -42,8 +42,8 @@ struct FeatureToolbarReducer {
     var body: some ReducerOf<Self> {
         BindingReducer()
         
-        Scope(state: \.snippetCode, action: \.snippetCode) {
-            SnippetCodeReducer()
+        Scope(state: \.featureVersion, action: \.snippetCode) {
+            FeatureVersionReducer()
         }
         
         Reduce { state, action in
@@ -59,12 +59,12 @@ struct FeatureToolbarReducer {
                     
                 }
             case let .setSnippetVersion(snippetVersion):
-                state.snippetCode.snippetVersion = snippetVersion
+                state.featureVersion.snippetVersion = snippetVersion
                 return .none
             case .alert(_):
                 return .none
             case .fetchVersionTapped:
-                state.snippetCode.isPresented = true
+                state.featureVersion.isPresented = true
                 return .none
             case .binding(_):
                 return .none
@@ -91,8 +91,8 @@ struct FeatureToolbarView: View {
         .onAppear {
             store.send(.onAppear)
         }
-        .sheet(isPresented: $store.snippetCode.isPresented) {
-            SnippetCodeView(store: store.scope(state: \.snippetCode, action: \.snippetCode))
+        .sheet(isPresented: $store.featureVersion.isPresented) {
+            FeatureVersionView(store: store.scope(state: \.featureVersion, action: \.snippetCode))
                 .presentationDetents([.medium])
         }
         
