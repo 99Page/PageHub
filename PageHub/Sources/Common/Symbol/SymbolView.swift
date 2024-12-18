@@ -14,7 +14,7 @@ struct SymbolFeature {
     
     @ObservableState
     struct State: Equatable {
-        var symbolStyles: [SymbolStyle] = []
+        var symbolStyles: IdentifiedArrayOf<SymbolStyle>
         
         mutating func removeLast() {
             guard !symbolStyles.isEmpty else { return }
@@ -23,13 +23,15 @@ struct SymbolFeature {
     }
     
     enum Action: Equatable {
-        
+        case onAppear(symbol: SymbolStyle)
     }
     
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
-                
+            case let .onAppear(symbol):
+                state.symbolStyles[id: symbol.id]?.effectValue += 1
+                return .none
             }
         }
     }
@@ -49,12 +51,14 @@ struct SymbolView: View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 20) {
                 ForEach(store.symbolStyles) { symbolStyle in
-                    AnimatedView(effect: symbolStyle.animationEffect) {
-                        Image(systemName: symbolStyle.symbol.rawValue)
-                            .resizable()
-                            .frame(width: 45, height: 45)
-                            .foregroundStyle(symbolStyle.color)
-                    }
+                    Image(systemName: symbolStyle.symbol.rawValue)
+                        .resizable()
+                        .frame(width: 45, height: 45)
+                        .foregroundStyle(symbolStyle.color)
+                        .symbolEffect(.wiggle.clockwise, value: symbolStyle.effectValue)
+                        .onAppear {
+                            store.send(.onAppear(symbol: symbolStyle))
+                        }
                 }
             }
             .safeAreaPadding(.top, 30)
@@ -63,7 +67,7 @@ struct SymbolView: View {
 }
 
 #Preview {
-    SymbolView(store: Store(initialState: SymbolFeature.State()) {
+    SymbolView(store: Store(initialState: SymbolFeature.State(symbolStyles: [])) {
         SymbolFeature()
     })
 }
