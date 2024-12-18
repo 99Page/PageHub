@@ -49,13 +49,13 @@ struct SheetToolbarReducer {
             case .symbol(_):
                 return .none
             case .showSheetButtonTapped:
-                state.symbol = SymbolFeature.State()
+                state.symbol = SymbolFeature.State(symbolStyles: [])
                 return .none
             case .binding(_):
                 return .none
             case .plusToolbarTapped:
                 if state.symbol == nil {
-                    state.symbol = SymbolFeature.State()
+                    state.symbol = SymbolFeature.State(symbolStyles: [])
                 }
                 
                 let newSymbol = symbolGeneator.createSymbol(uuid())
@@ -64,7 +64,7 @@ struct SheetToolbarReducer {
                 return .none
             case .minusToolbarTapped:
                 if state.symbol == nil {
-                    state.symbol = SymbolFeature.State()
+                    state.symbol = SymbolFeature.State(symbolStyles: [])
                 }
                 
                 state.symbol?.removeLast()
