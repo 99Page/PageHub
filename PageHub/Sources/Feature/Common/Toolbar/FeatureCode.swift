@@ -8,13 +8,13 @@
 
 import Foundation
 
-struct FeatureCode: Identifiable, Equatable {
-    let id = UUID()
+struct FeatureCode: Equatable, Identifiable {
+    let id: UUID
     let code: String
 }
 
 extension FeatureCode {
-    init(_ responses: [FeatureCodeResponse]) {
+    init(_ responses: [FeatureCodeResponse], uuid: UUID) {
         // Step 1: 모든 response를 라인 단위로 나누고 import와 나머지 분리
         var importLines: Set<String> = [] // 중복 제거를 위해 Set 사용
         var otherLines: [String] = []
@@ -33,6 +33,8 @@ extension FeatureCode {
         
         // Step 2: import 라인을 정렬(선택 사항)하고 다른 라인과 결합
         let sortedImportLines = importLines.sorted() // 중복 제거 후 정렬
+        
         self.code = (sortedImportLines + otherLines).joined(separator: "\n")
+        self.id = uuid
     }
 }

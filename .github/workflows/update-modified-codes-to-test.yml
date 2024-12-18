@@ -49,7 +49,7 @@ jobs:
 
         # Extract the line containing '.iOS(...)' from Project.swift
         # Example output: .iOS("18.0")
-        IOS_LINE=$(grep -o '.iOS(.*)' Project.swift)
+        IOS_LINE=$(grep -o '.iOS(.*)' PageHub/Project.swift)
 
 
         # Extract the version number in the format 'number.number' from the line
