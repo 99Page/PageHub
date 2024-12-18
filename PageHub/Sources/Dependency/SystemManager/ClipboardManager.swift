@@ -11,7 +11,7 @@ import Dependencies
 import UIKit
 
 struct ClipboardManager {
-    var copyToClipboard: (String) -> ()
+    var copyToClipboard: @Sendable (String) -> ()
 }
 
 extension ClipboardManager: DependencyKey {

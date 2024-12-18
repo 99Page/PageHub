@@ -34,7 +34,7 @@ struct FeatureToolbarReducer {
         case setSnippetVersion(SnippetVersion)
         case fetchVersionTapped
         case binding(BindingAction<State>)
-        case snippetCode(FeatureVersionReducer.Action)
+        case featureVersion(FeatureVersionReducer.Action)
         case snippetFetchFail
         
         @CasePathable
@@ -45,10 +45,11 @@ struct FeatureToolbarReducer {
     
     @Dependency(\.snippetService) var snippetService
     
+
     var body: some ReducerOf<Self> {
         BindingReducer()
         
-        Scope(state: \.featureVersion, action: \.snippetCode) {
+        Scope(state: \.featureVersion, action: \.featureVersion) {
             FeatureVersionReducer()
         }
         
@@ -86,13 +87,14 @@ struct FeatureToolbarReducer {
                 return .none
             case .binding(_):
                 return .none
-            case .snippetCode(_):
+            case .featureVersion(_):
                 return .none
             case .snippetFetchFail:
                 state.isFailedToFetch = true
                 return .none
             }
         }
+        .ifLet(\.alert, action: \.alert)
 
     }
 }
@@ -113,7 +115,7 @@ struct FeatureToolbarView: View {
             store.send(.onAppear)
         }
         .sheet(isPresented: $store.featureVersion.isPresented) {
-            FeatureVersionView(store: store.scope(state: \.featureVersion, action: \.snippetCode))
+            FeatureVersionView(store: store.scope(state: \.featureVersion, action: \.featureVersion))
                 .presentationDetents([.medium])
         }
         .alert($store.scope(state: \.alert, action: \.alert))

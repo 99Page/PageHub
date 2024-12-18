@@ -34,13 +34,13 @@ let target = Target.target(
     bundleId: appBundleId,
     deploymentTargets: deploymentTarget,
     infoPlist: .extendingDefault(with: infoPlist),
-    sources: ["PageHub/Sources/**"],
+    sources: ["Sources/**"],
     resources: [
-        "PageHub/Resources/**",
-        "Documentation/**"
+        "Resources/**",
+        "../Documentation/**"
     ],
     dependencies: [
-        .package(product: "ComposableArchitecture"),
+        .project(target: "Common", path: "../Common"),
         .package(product: "FirebaseCore"),
         .package(product: "FirebaseFirestore"),
         .package(product: "GoogleSignIn"),
@@ -51,18 +51,16 @@ let target = Target.target(
 
 let testTarget = Target.target(
     name: "\(appName)Tests",
-    destinations: destinations,
+    destinations: .iOS,
     product: .unitTests,
     bundleId: "\(appBundleId).test",
     deploymentTargets: deploymentTarget,
-    sources: ["PageHub/Tests/**"],
+    sources: ["Tests/**"],
     dependencies: [
+        .project(target: "Common", path: "../Common"),
         .target(name: "PageHub"),
     ]
 )
-
-let tcaURL = "https://github.com/pointfreeco/swift-composable-architecture.git"
-let tcaVersion: Package.Requirement = .upToNextMajor(from: "1.13.0")
 
 let firebaseURL = "https://github.com/firebase/firebase-ios-sdk.git"
 let firebaseVersion: Package.Requirement = .upToNextMajor(from: "11.4")
@@ -78,11 +76,14 @@ let project = Project(
     name: appName,
     organizationName: "Page",
     packages: [
-        .remote(url: tcaURL, requirement: tcaVersion),
         .remote(url: firebaseURL, requirement: firebaseVersion),
         .remote(url: highlightSwiftURL, requirement: hightSwiftVersion),
         .remote(url: googleSignInURL, requirement: googleSignInVersion)
     ],
-    settings: nil,
+    settings: .settings(
+        base: [
+            "SWIFT_VERSION": "6.0"
+        ]
+    ),
     targets: [target, testTarget]
 )
