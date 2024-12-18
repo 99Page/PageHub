@@ -18,7 +18,7 @@ struct FeatureVersionView: View {
             List(snippetVersion.versions.indices, id: \.self) { index in
                 Button(snippetVersion.versions[index]) {
                     let version = snippetVersion.versions[index]
-                    store.send(.fetchCode(version: version))
+                    store.send(.versionTapped(version: version))
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -41,7 +41,7 @@ struct FeatureVersionView: View {
         .contentMargins([.horizontal, .top], 10, for: .scrollContent)
         .overlay(alignment: .topTrailing) {
             Button {
-                store.send(.dismissCodeView)
+                store.send(.xButtonTapped)
             } label: {
                 Image(systemName: "xmark.circle")
             }

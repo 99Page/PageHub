@@ -25,13 +25,18 @@ struct FeatureVersionReducer {
     
     @Dependency(\.snippetService) var snippetService
     @Dependency(\.clipboardManager) var clipBoardManager
+    @Dependency(\.uuid) var uuid
     
     enum Action: BindableAction, Equatable {
         case alert(PresentationAction<AlertAction>)
-        case fetchCode(version: Version)
-        case updateCode(code: FeatureCode)
+        case versionTapped(version: Version)
         case binding(BindingAction<State>)
-        case dismissCodeView
+        case xButtonTapped
+        case logic(Logic)
+    }
+    
+    enum Logic: Equatable {
+        case updateCode(code: FeatureCode)
         case showServiceErrorAlert
     }
     
@@ -45,43 +50,49 @@ struct FeatureVersionReducer {
         
         Reduce { state, action in
             switch action {
-            case let .fetchCode(version):
+            case let .versionTapped(version):
                 let feature = state.feature
                 return .run { send in
                     do {
                         var visited: Set<String> = []
                         visited.insert(feature.rawValue)
                         let codeResponse = try await snippetService.fetchCode(feature.rawValue, version, &visited)
-                        let code = FeatureCode(codeResponse)
-                        await send(.updateCode(code: code))
+                        let code = FeatureCode(codeResponse, uuid: uuid())
+                        await send(.logic(.updateCode(code: code)))
                     } catch {
-                        await send(.showServiceErrorAlert)
+                        await send(.logic(.showServiceErrorAlert))
                     }
                 }
-            case let .updateCode(code):
-                state.showCode = code
-                clipBoardManager.copyToClipboard(code.code)
-                return .none
             case .binding(_):
                 return .none
-            case .dismissCodeView:
+            case .xButtonTapped:
+                /// If current view is dismissed, the code view will also be dismissed.
                 state.isPresented = false
                 return .none
             case .alert(_):
                 return .none
-            case .showServiceErrorAlert:
-                state.alert = AlertState {
-                    TextState("코드를 불러오지 못했습니다.")
-                } actions: {
-                    ButtonState(action: .ok) {
-                        TextState("확인")
-                    }
-                } message: {
-                    TextState("개발자의 실수가 있습니다ㅠㅠ")
-                }
+            case let .logic(logic):
+                handleLogic(logic, state: &state)
                 return .none
             }
         }
         .ifLet(\.$alert, action: \.alert)
+    }
+    
+    private func handleLogic(_ logic: Logic, state: inout FeatureVersionReducer.State) {
+        switch logic {
+        case .updateCode(let code):
+            state.showCode = code
+        case .showServiceErrorAlert:
+            state.alert = AlertState {
+                TextState("코드를 불러오지 못했습니다.")
+            } actions: {
+                ButtonState(action: .ok) {
+                    TextState("확인")
+                }
+            } message: {
+                TextState("개발자의 실수가 있습니다ㅠㅠ")
+            }
+        }
     }
 }

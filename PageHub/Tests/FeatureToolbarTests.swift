@@ -16,7 +16,7 @@ struct FeatureToolbarTests {
     typealias StoreType = TestStore<FeatureToolbarReducer.State, FeatureToolbarReducer.Action>
     
     @Test
-    func onAppear_fetchSuccess_setsSnippetVersion () async throws {
+    func onAppear_whenFetchSuccess_setsSnippetVersion () async throws {
         let store: StoreType = await TestStore(
             initialState: FeatureToolbarReducer.State(feature: .sheetToolbar)
         ) {
@@ -37,7 +37,7 @@ struct FeatureToolbarTests {
         }
     }
 
-    @Test func onAppear_fetchFailure_setsFailedState() async throws {
+    @Test func onAppear_whenFetchFailure_setsFailedState() async throws {
         let store: StoreType = await TestStore(
             initialState: FeatureToolbarReducer.State(feature: .sheetToolbar)
         ) {
@@ -58,7 +58,7 @@ struct FeatureToolbarTests {
     
     @MainActor @Test
     func fetchVersionTapped_whenFetchFailed_showsAlert() async throws {
-        let store: StoreType = await TestStore(
+        let store: StoreType = TestStore(
             initialState: FeatureToolbarReducer.State(feature: .sheetToolbar)
         ) {
             FeatureToolbarReducer()
@@ -82,7 +82,7 @@ struct FeatureToolbarTests {
     
     @MainActor @Test
     func fetchVersionTapped_whenFetchSuccess_presentsFeatureVersion() async throws {
-        let store: StoreType = await TestStore(
+        let store: StoreType = TestStore(
             initialState: FeatureToolbarReducer.State(feature: .sheetToolbar)
         ) {
             FeatureToolbarReducer()
