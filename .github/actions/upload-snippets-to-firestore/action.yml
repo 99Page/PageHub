@@ -2,7 +2,8 @@ name: "Update Snippet Codes"
 description: "Uploads or updates Firestore snippets based on changed files."
 inputs:
   FILES:
-    description: "A multi-line string containing file paths to upload to Firestore, each path on a new line. Note: Multiple lines cannot be passed via env, so FILES is passed as an input instead."
+    description: "A one-line string containing file paths to upload to Firestore, separated by backslashes."
+    example: "PageHub/A.swift\PageHub/B.swift"
     required: true 
 
 runs:
@@ -19,9 +20,6 @@ runs:
         FILES: ${{ inputs.FILES }}
 
       run: |
-        # \n을 기준으로 파일 목록을 분리합니다. 
-        IFS=$'\n'
-
         set_subsnippet_values() {
           local SUBSNIPPET_NAME=$1
           SUBSNIPPET_MAPPING_PATH=PageHub/Resources/SubsnippetMap/${SUBSNIPPET_NAME}.json
@@ -50,7 +48,7 @@ runs:
               "$FIRESTORE_CREATE_URL" \
               -d "$REQUEST_BODY" || exit 1
 
-          echo "Snippet created with POST."
+          echo "✅ Snippet created with POST."
         }
 
         patch_snippet() {
@@ -70,9 +68,10 @@ runs:
             "$FIRESTORE_READ_UPDATE_URL" \
             -d "$REQUEST_BODY" || exit 1
 
-          echo "Document updated with PATCH."
+          echo "✅ Snippet updated with PATCH."
         }
   
+        IFS='\'
         for FILE in $FILES; do
           if [ -f "$FILE" ]; then
             DOCUMENT=$(echo "$FILE" | sed -E 's|.*/||; s|\.swift$||' | awk '{print tolower(substr($0,1,1)) substr($0,2)}')
@@ -116,6 +115,6 @@ runs:
               post_snippet "$CODE" "$SUBSNIPPET_VALUES"
             fi
           else
-            echo "File $FILE does not exist."
+            echo "❌ File $FILE does not exist."
           fi
         done

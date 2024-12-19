@@ -9,10 +9,10 @@
 import SwiftUI
 
 extension View {
-    /// 뷰의 `CGSize`를 추적하여 클로저로 전달하는 메서드
-    /// - Parameter perform: 뷰의 사이즈가 변경될 때 호출되는 클로저
-    /// - Returns: 뷰의 사이즈 추적 기능이 추가된 뷰
-    func trackSize(_ perform: @escaping (CGSize) -> Void) -> some View {
+    /// Tracks the `CGSize` of a view and passes it to the provided closure.
+    /// - Parameter perform: A closure called whenever the size of the view changes.
+    /// - Returns: A modified view that observes its size and triggers the given closure.
+    func trackSize(_ perform: @MainActor @Sendable @escaping (CGSize) -> Void) -> some View {
         self
             .background(
                 GeometryReader { geometryProxy in
@@ -21,6 +21,10 @@ extension View {
                 }
                 
             )
-            .onPreferenceChange(SizePreferenceKey.self, perform: perform)
+            .onPreferenceChange(SizePreferenceKey.self) { size in
+                Task { @MainActor in
+                    perform(size)
+                }
+            }
     }
 }

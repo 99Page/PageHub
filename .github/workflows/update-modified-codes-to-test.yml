@@ -29,9 +29,21 @@ jobs:
 
     - name: Check for the existence of modified files
       run: |
-        CHANGED_FILES=$(git diff --name-only origin/main $GITHUB_SHA | grep "^PageHub/Sources/Snippet" || true)
+        git fetch origin main
+        CHANGED_FILES=$(
+          git diff \
+            --name-only \
+            --diff-filter=d \
+            origin/main $GITHUB_SHA | \
+            grep "^PageHub/Sources/Snippet" || true
+        )
 
-        if [ -n "$CHANGED_FILES" ]; then 
+        CHANGED_FILES=$(echo "$CHANGED_FILES" | tr '\n' '\\')
+
+        echo "Changed files: $CHANGED_FILES"
+        echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
+
+        if [ -z "$CHANGED_FILES" ]; then 
           echo "No modified files detected in PageHub/Sources/Snippet. Exiting"
           exit 0
         fi
@@ -74,6 +86,12 @@ jobs:
 
         echo "FIRESTORE_TEST_FEATURES_COLLECTION=$FIRESTORE_TEST_FEATURES_COLLECTION" >> $GITHUB_ENV
         echo "FIRESTORE_SNIPPETS_DOCUMENT=$FIRESTORE_SNIPPETS_DOCUMENT" >> $GITHUB_ENV
+
+    - name: Set up Snippet ID to GITHUB_ENV
+      uses: ./.github/actions/set-snippet-id
+      with:
+        FILES: ${{ env.CHANGED_FILES }}
+        COLLECTION: "testSnippetMappings"
 
     - name: Update Snippet Codes
       uses: ./.github/actions/upload-snippets-to-firestore

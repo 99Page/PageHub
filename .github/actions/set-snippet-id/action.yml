@@ -2,7 +2,8 @@ name: "Set Up Snippet ID to GITHUB_ENV"
 description: "Stores the ID value required for API calls in GITHUB_ENV."
 inputs:
   FILES:
-    description: "A multi-line string containing file paths to upload to Firestore, each path on a new line. Note: Multiple lines cannot be passed via env, so FILES is passed as an input instead."
+    description: "A one-line string containing file paths to upload to Firestore, separated by backslashes."
+    example: "PageHub/A.swift\PageHub/B.swift"
     required: true 
   COLLECTION: 
     description: "Collection target to search Snippet ID"
@@ -20,9 +21,6 @@ runs:
         COLLECTION: ${{ inputs.COLLECTION }}
 
       run: |
-        # \n을 기준으로 파일 목록을 분리합니다. 
-        IFS=$'\n'
-        
         generate_and_set_snippet_id() {
           local SNIPPET_NAME=$1
           
@@ -61,7 +59,7 @@ runs:
           local VALUE=$2
           
           echo "$VARIABLE_NAME=$VALUE" >> $GITHUB_ENV
-          echo "Added to GITHUB_ENV: $VARIABLE_NAME=$VALUE"
+          echo "✅Added to GITHUB_ENV: $VARIABLE_NAME=$VALUE"
         }
         
         set_id_of_snippet() {
@@ -90,11 +88,12 @@ runs:
           fi
         }
         
+        IFS='\'
         for FILE in $FILES; do
           if [ -f "$FILE" ]; then
             set_id_of_snippet $FILE
               
           else
-            echo "File $FILE does not exist."
+            echo "❌File $FILE does not exist."
           fi
         done

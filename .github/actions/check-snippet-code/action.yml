@@ -2,7 +2,8 @@ name: "Check Updated Snippet Codes"
 description: "Uploads or updates Firestore snippets based on changed files."
 inputs:
   FILES:
-    description: "A multi-line string containing file paths to upload to Firestore, each path on a new line. Note: Multiple lines cannot be passed via env, so FILES is passed as an input instead."
+    description: "A one-line string containing file paths to upload to Firestore, separated by backslashes."
+    example: "PageHub/A.swift\PageHub/B.swift"
     required: true 
 
 runs:
@@ -20,9 +21,6 @@ runs:
         FILES: ${{ inputs.FILES }}
 
       run: |
-        # \n을 기준으로 파일 목록을 분리합니다. 
-        IFS=$'\n'
-
         VISITED_SNIPPETS="visitied.snippets.txt"
         touch $VISITED_SNIPPETS
       
@@ -55,17 +53,25 @@ runs:
             echo "$CODE" >> Testing.swift
           fi
 
-          # Extract 'subsnippets'
+          # Extract 'stringValue' values from the JSON response
+          SUBSNIPPETS=$(echo "$SNIPPET_RESPONSE" | \
+            jq -r '.fields.subsnippets.arrayValue.values?[]?.stringValue')
 
-          # Extract 'subsnippets' if they exist
-          SUBSNIPPETS=$(echo "$SNIPPET_RESPONSE" | jq -r '.fields.subsnippets.arrayValue.values')
-         
-          # Process each subsnippet recursively
-          for SUBSNIPPET in "${SUBSNIPPETS[@]}"; do
+          # Check if there are no subsnippets
+          if [ -z "$SUBSNIPPETS" ]; then
+            return
+          fi
+
+          echo "SUBSIPPETS of $SNIPPET: $SUBSNIPPETS"
+
+          echo "$SUBSNIPPETS" | while IFS= read -r SUBSNIPPET; do
+            echo "$SNIPPET -> $SUBSNIPPET"
             process_snippet "$SUBSNIPPET"
           done
         }
 
+        IFS='\'
+        
         for FILE in $FILES; do
           if [ -f "$FILE" ]; then
 
