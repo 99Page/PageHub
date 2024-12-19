@@ -34,6 +34,7 @@ struct SheetToolbarView: View {
                 FeatureToolbarView(store: store.scope(state: \.featureToolbar, action: \.featureToolbar))
             }
         }
+        .navigationTitle("SheetToolbar")
     }
     
     @ViewBuilder
@@ -41,7 +42,7 @@ struct SheetToolbarView: View {
         if store.symbol?.symbolStyles.count ?? 0 > 0 {
             SymbolView(store: symbolStore)
         } else {
-            Text("+ 버튼을 눌러 Symbol을 추가하세요. ")
+            Text("드래그하면 버튼이 따라 움직입니다.")
         }
     }
     
@@ -70,8 +71,10 @@ struct SheetToolbarView: View {
 }
 
 #Preview {
-    SheetToolbarView(store: Store(initialState: SheetToolbarReducer.State()) {
-        SheetToolbarReducer()
-            ._printChanges()
-    })
+    NavigationStack {
+        SheetToolbarView(store: Store(initialState: SheetToolbarReducer.State()) {
+            SheetToolbarReducer()
+                ._printChanges()
+        })
+    }
 }

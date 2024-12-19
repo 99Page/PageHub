@@ -21,6 +21,8 @@ struct FeatureVersionReducer {
         var isPresented: Bool = false
         
         var showCode: FeatureCode?
+        
+        var durationConfig = DurationConfig(text: "코드가 복사되었습니다", duration: 2.5, isPresented: true)
     }
     
     @Dependency(\.snippetService) var snippetService
@@ -33,6 +35,7 @@ struct FeatureVersionReducer {
         case binding(BindingAction<State>)
         case xButtonTapped
         case logic(Logic)
+        case codeTextViewAppear
     }
     
     enum Logic: Equatable {
@@ -72,27 +75,26 @@ struct FeatureVersionReducer {
             case .alert(_):
                 return .none
             case let .logic(logic):
-                handleLogic(logic, state: &state)
+                switch logic {
+                case .updateCode(let code):
+                    state.showCode = code
+                case .showServiceErrorAlert:
+                    state.alert = AlertState {
+                        TextState("코드를 불러오지 못했습니다.")
+                    } actions: {
+                        ButtonState(action: .ok) {
+                            TextState("확인")
+                        }
+                    } message: {
+                        TextState("개발자의 실수가 있습니다ㅠㅠ")
+                    }
+                }
+                return .none
+            case .codeTextViewAppear:
+                state.durationConfig.isPresented = true
                 return .none
             }
         }
         .ifLet(\.$alert, action: \.alert)
-    }
-    
-    private func handleLogic(_ logic: Logic, state: inout FeatureVersionReducer.State) {
-        switch logic {
-        case .updateCode(let code):
-            state.showCode = code
-        case .showServiceErrorAlert:
-            state.alert = AlertState {
-                TextState("코드를 불러오지 못했습니다.")
-            } actions: {
-                ButtonState(action: .ok) {
-                    TextState("확인")
-                }
-            } message: {
-                TextState("개발자의 실수가 있습니다ㅠㅠ")
-            }
-        }
     }
 }

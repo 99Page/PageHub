@@ -20,8 +20,7 @@ struct SheetToolbarReducer {
             presentationDedents: [.medium, .fraction(0.9)],
             selection: .medium,
             backgroundInteraction: .enabled,
-            alignment: .trailing,
-            toolbarHiddenPresentationDedents: [.fraction(0.9)]
+            alignment: .trailing
         )
     }
     

@@ -15,17 +15,26 @@ struct FeatureVersionView: View {
     
     var body: some View {
         if let snippetVersion = store.snippetVersion {
-            List(snippetVersion.versions.indices, id: \.self) { index in
-                Button(snippetVersion.versions[index]) {
-                    let version = snippetVersion.versions[index]
-                    store.send(.versionTapped(version: version))
-                }
+            List {
+                versionSectionView(snippetVersion)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .fullScreenCover(item: $store.showCode, content: buildCodeText)
             .alert($store.scope(state: \.alert, action: \.alert))
         } else {
             ProgressView()
+        }
+    }
+    
+    private func versionSectionView(_ snippetVersion: SnippetVersion) -> some View {
+        Section("MIN iOS VERSION") {
+            ForEach(snippetVersion.versions.indices, id: \.self) { index in
+                Button(snippetVersion.versions[index]) {
+                    let version = snippetVersion.versions[index]
+                    store.send(.versionTapped(version: version))
+                }
+                .foregroundStyle(Color.black)
+            }
         }
     }
     
@@ -46,6 +55,10 @@ struct FeatureVersionView: View {
                 Image(systemName: "xmark.circle")
             }
         }
+        .onAppear {
+            store.send(.codeTextViewAppear)
+        }
+//        .durationPopupView(config: $store.durationConfig)
     }
 }
 
