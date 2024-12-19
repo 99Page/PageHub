@@ -49,6 +49,7 @@ struct SheetToolbarViewModifier<Item: Identifiable, Sheet: View, Toolbar: View>:
         }
     }
     
+    
     private func updateViewSize(size: CGSize) {
         sheetViewSize = size
     }
