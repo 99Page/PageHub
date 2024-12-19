@@ -43,7 +43,12 @@ let target = Target.target(
     infoPlist: .extendingDefault(with: infoPlist),
     dependencies: [
         .package(product: "ComposableArchitecture")
-    ]
+    ],
+    settings: .settings(
+        base: [
+            "DEFINES_MODULE": "NO"
+        ]
+    )
 )
 
 let tcaURL = "https://github.com/pointfreeco/swift-composable-architecture.git"
