@@ -58,7 +58,9 @@ struct FeatureVersionView: View {
         .onAppear {
             store.send(.codeTextViewAppear)
         }
-//        .durationPopupView(config: $store.durationConfig)
+        .notification(config: $store.notificationConfig) {
+            DurationView(config: $store.durationConfig)
+        }
     }
 }
 

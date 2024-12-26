@@ -22,7 +22,8 @@ struct FeatureVersionReducer {
         
         var showCode: FeatureCode?
         
-        var durationConfig = DurationConfig(text: "코드가 복사되었습니다", duration: 2.5, isPresented: true)
+        var durationConfig = DurationConfig(text: "코드가 복사되었습니다", duration: 2.5, isPresented: false)
+        var notificationConfig = NotificationConfig(alignment: .bottom)
     }
     
     @Dependency(\.snippetService) var snippetService
@@ -41,6 +42,7 @@ struct FeatureVersionReducer {
     enum Logic: Equatable {
         case updateCode(code: FeatureCode)
         case showServiceErrorAlert
+        case dismissNotification
     }
     
     @CasePathable
@@ -50,6 +52,12 @@ struct FeatureVersionReducer {
     
     var body: some ReducerOf<Self> {
         BindingReducer()
+            .onChange(of: \.durationConfig.isPresented) { _, newValue in
+                Reduce { state, action in
+                    guard !state.durationConfig.isPresented else { return .none }
+                    return .send(.logic(.dismissNotification))
+                }
+            }
         
         Reduce { state, action in
             switch action {
@@ -71,12 +79,21 @@ struct FeatureVersionReducer {
             case .xButtonTapped:
                 /// If current view is dismissed, the code view will also be dismissed.
                 state.isPresented = false
+                
+                state.notificationConfig.isPresented = false
+                state.durationConfig.isPresented = false
+                
+                
+                #if DEBUG
+                state.showCode = nil
+                #endif
                 return .none
             case .alert(_):
                 return .none
             case let .logic(logic):
                 switch logic {
                 case .updateCode(let code):
+                    clipBoardManager.copyToClipboard(code.code)
                     state.showCode = code
                 case .showServiceErrorAlert:
                     state.alert = AlertState {
@@ -88,10 +105,13 @@ struct FeatureVersionReducer {
                     } message: {
                         TextState("개발자의 실수가 있습니다ㅠㅠ")
                     }
+                case .dismissNotification:
+                    state.notificationConfig.isPresented = false
                 }
                 return .none
             case .codeTextViewAppear:
                 state.durationConfig.isPresented = true
+                state.notificationConfig.isPresented = true
                 return .none
             }
         }

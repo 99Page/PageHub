@@ -8,13 +8,6 @@
 
 import SwiftUI
 
-extension View {
-    func durationPopupView(config: Binding<DurationConfig>) -> some View {
-        self
-            .modifier(DurationViewModifier(config: config))
-    }
-}
-
 struct DurationConfig: Equatable {
     var progress: CGFloat
     let text: String
@@ -85,11 +78,11 @@ struct DurationView: View {
                         config.isPresented = false
                     }
                 }
+
             }
             .onDisappear {
                 config.progress = 1
             }
-            
         } else {
             Color.clear
                 .onAppear {
@@ -126,9 +119,11 @@ struct DurationView: View {
     @Previewable
     @State var config = DurationConfig(text: "DurationView", duration: 2.5)
     
-    return Button("Show duration view") {
-        config.isPresented = true
+    return ScrollView {
+        Button("Show duration view") {
+            config.isPresented = true
+        }
+        .padding(.bottom, 100)
+        .modifier(DurationViewModifier(config: $config))
     }
-    .padding(.bottom, 100)
-    .modifier(DurationViewModifier(config: $config))
 }
