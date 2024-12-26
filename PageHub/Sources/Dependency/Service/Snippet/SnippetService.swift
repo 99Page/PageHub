@@ -42,7 +42,6 @@ extension SnippetService: DependencyKey {
             // 재귀적으로 fetchCode 호출
             for subsnippet in codeResponse.subsnippets {
                 if !visited.contains(subsnippet) {
-                    debugPrint("\(snippet) -> \(subsnippet)")
                     visited.insert(subsnippet)
                     let subsnippetResponse = try await liveValue.fetchCode(subsnippet, version, &visited)
                     result.append(contentsOf: subsnippetResponse)
