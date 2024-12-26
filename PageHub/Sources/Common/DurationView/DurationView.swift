@@ -9,36 +9,24 @@
 import SwiftUI
 
 struct DurationConfig: Equatable {
-    var progress: CGFloat
+    var progress: CGFloat = 1
     let text: String
     let duration: TimeInterval
-    var isPresented: Bool
+    var isPresented: Bool = false
     
-    init(text: String, duration: TimeInterval, isPresented: Bool = false) {
-        self.progress = 1.0
+    private let initialProgress: CGFloat = 1
+    
+    init(text: String, duration: TimeInterval) {
         self.text = text
         self.duration = duration
-        self.isPresented = isPresented
+        
+        let initialProgress = self.initialProgress
+        self.progress = initialProgress
     }
-}
-
-struct DurationViewModifier: ViewModifier {
-
-    @Binding var config: DurationConfig
     
-    func body(content: Content) -> some View {
-        content
-            .fullScreenCover(isPresented: $config.isPresented) {
-                VStack {
-                    DurationView(config: $config)
-                }
-                .presentationBackground(Color.clear)
-                .presentationBackgroundInteraction(.enabled)
-                .frame(maxHeight: .infinity, alignment: .bottom)
-            }
-            .transaction {
-                $0.disablesAnimations = true
-            }
+    
+    mutating func resetProgress() {
+        self.progress = initialProgress
     }
 }
 
@@ -51,49 +39,33 @@ struct DurationView: View {
     
     var body: some View {
         if isAppeared {
-            VStack(spacing: 0) {
-                Text(config.text)
-                    .foregroundStyle(Color.white)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, 10)
-                    .padding(.bottom, 6)
-                
-                remainTimeView()
-            }
-            .frame(maxWidth: .infinity, alignment: .bottom)
-            .padding(.horizontal, 10)
-            .background(Color.blue)
-            .clipShape(
-                RoundedRectangle(cornerRadius: 10)
-            )
-            .padding(.horizontal, 14)
-            .transition(.scale)
-            .onAppear {
-                withAnimation(.linear(duration: config.duration)) {
-                    config.progress = 0
-                } completion: {
-                    withAnimation {
-                        isAppeared = false
-                    } completion: {
-                        config.isPresented = false
-                    }
-                }
-
-            }
-            .onDisappear {
-                config.progress = 1
-            }
+            activatedDurationView()
         } else {
             Color.clear
-                .onAppear {
-                    if !show {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                            isAppeared = true
-                            show = true
-                        }
-                    }
-                }
+                .onAppear(perform: handleInitialAppearance)
         }
+    }
+    
+    private func activatedDurationView() -> some View {
+        VStack(spacing: 0) {
+            Text(config.text)
+                .foregroundStyle(Color.white)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, 10)
+                .padding(.bottom, 6)
+            
+            remainTimeView()
+        }
+        .frame(maxWidth: .infinity, alignment: .bottom)
+        .padding(.horizontal, 10)
+        .background(Color.blue)
+        .clipShape(
+            RoundedRectangle(cornerRadius: 10)
+        )
+        .padding(.horizontal, 14)
+        .transition(.scale)
+        .onAppear(perform: startAnimation)
+        .onDisappear { config.resetProgress() }
     }
     
     private func remainTimeView() -> some View {
@@ -105,25 +77,35 @@ struct DurationView: View {
         }
         .frame(height: 5) // GeometryReader의 높이 설정
     }
+    
+    private func startAnimation() {
+        withAnimation(.linear(duration: config.duration)) {
+            config.progress = 0
+        } completion: {
+            hideView()
+        }
+    }
+    
+    private func hideView() {
+        withAnimation {
+            isAppeared = false
+        } completion: {
+            config.isPresented = false
+        }
+    }
+    
+    private func handleInitialAppearance() {
+        guard !show else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            isAppeared = true
+            show = true
+        }
+    }
 }
 
 #Preview {
     @Previewable
-    @State var config = DurationConfig(text: "DurationView", duration: 2.5, isPresented: true)
-    
-    return DurationView(config: $config)
-        .padding(.horizontal, 20)
-}
-
-#Preview("ViewModifier") {
-    @Previewable
     @State var config = DurationConfig(text: "DurationView", duration: 2.5)
     
-    return ScrollView {
-        Button("Show duration view") {
-            config.isPresented = true
-        }
-        .padding(.bottom, 100)
-        .modifier(DurationViewModifier(config: $config))
-    }
+    return DurationView(config: $config)
 }

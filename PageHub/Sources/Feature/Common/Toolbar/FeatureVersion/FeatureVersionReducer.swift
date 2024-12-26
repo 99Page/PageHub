@@ -22,7 +22,7 @@ struct FeatureVersionReducer {
         
         var showCode: FeatureCode?
         
-        var durationConfig = DurationConfig(text: "코드가 복사되었습니다", duration: 2.5, isPresented: false)
+        var durationConfig = DurationConfig(text: "코드가 복사되었습니다", duration: 2.5)
         var notificationConfig = NotificationConfig(alignment: .bottom)
     }
     
