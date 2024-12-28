@@ -10,98 +10,120 @@ runs:
         # The Authorization token information to be included in the curl header.
         ACCESS_TOKEN: ${{ env.ACCESS_TOKEN }}
 
-        # The testDatabase contains snippet names. You can include snippets separated by \n.
-        # Example: feature1\nfeature2\nfeature3
-        SNIPPET_INPUT: ${{ env.SNIPPET_INPUT }}
+        CHANGED_FILES: ${{ env.CHANGED_FILES }}
         MIN_IOS_VERSION: ${{ env.MIN_IOS_VERSION }}
 
         # The following values are to be included in the curl URL.
         FIREBASE_PROJECT_ID: ${{ env.FIREBASE_PROJECT_ID }}
-        FIRESTORE_TEST_SNIPPETS_COLLECTION: ${{ env.FIRESTORE_TEST_SNIPPETS_COLLECTION }} 
-        FIRESTORE_PRODUCT_SNIPPETS_COLLECTION: ${{ env.FIRESTORE_PRODUCT_SNIPPETS_COLLECTION }}
 
       run: |
     
         JSON_FILE="response.json"
 
+        post_snippet_to_product() {
+          local URL="$1"
+          local REQUEST_BODY="$2"
+
+          echo "Attempting a POST request."
+
+          curl -X POST \
+            -f \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            "$URL" \
+            -d "$REQUEST_BODY" || exit 1
+
+          echo "Document created with POST."
+        }
+
+        patch_snippet_to_product() {
+          local URL="$1"
+          local REQUEST_BODY="$2"
+
+          echo "Attempting a PATCH request."
+          curl -X PATCH \
+            -f \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            "$URL" \
+            -d "$REQUEST_BODY" || exit 1
+          echo "Document updated with PATCH."
+        }
+
         make_test_response_json_file() {
           local SNIPPET_NAME="$1"
-          TEST_SNIPPET_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$SNIPPET_NAME/$MIN_IOS_VERSION"
+          local SNIPPET_ID="${SNIPPET_NAME}_testId"
+          local SNIPPET_ID_VALUE=${!SNIPPET_ID}
+
+          TEST_SNIPPET_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/testSnippets/$SNIPPET_ID_VALUE/versions/$MIN_IOS_VERSION"
+
+          echo "TEST_SNIPPET_URL: $TEST_SNIPPET_URL"
 
           curl -X GET \
             -H "Authorization: Bearer $ACCESS_TOKEN" \
             "$TEST_SNIPPET_URL" \
             -o $JSON_FILE \
             -f || exit 1
-
-        }
-
-        update_snippet() {
-          local RESPONSE_NAME="$1"
-          local RESPONSE_FILE="$2"
-
-          FIRESTORE_PRODUCT_GET_PATCH_URL="https://firestore.googleapis.com/v1/$NAME"
-          QUERY_URL=$(echo "$NAME" | sed -E 's|^(.*)/([^/]+)$|\1?documentId=\2|')
-          FIRESTORE_PRODUCT_POST_URL="https://firestore.googleapis.com/v1/$QUERY_URL"
-
-            echo "GET URL: $FIRESTORE_PRODUCT_GET_PATCH_URL"
-            echo "POST URL: $FIRESTORE_PRODUCT_POST_URL"
-
-            STATUS=$(curl -s \
-              -o /dev/null \
-              -w "%{http_code}" \
-              -H "Authorization: Bearer $ACCESS_TOKEN" \
-              "$FIRESTORE_PRODUCT_GET_PATCH_URL")
-
-            echo "GET STATUS: $STATUS"
-
-            REQUEST_BODY=$(jq -n --argjson fields "$FIELDS" '{fields: $fields}')
-            echo "REQUEST_BODY: $REQUEST_BODY"
-
-            if [ "$STATUS" -eq 200 ]; then
-              curl -X PATCH \
-                -f \
-                -H "Authorization: Bearer $ACCESS_TOKEN" \
-                -H "Content-Type: application/json" \
-                "$FIRESTORE_PRODUCT_GET_PATCH_URL" \
-                -d "$REQUEST_BODY" || exit 1
-              echo "Document updated with PATCH."
-            else
-              curl -X POST \
-                -f \
-                -H "Authorization: Bearer $ACCESS_TOKEN" \
-                -H "Content-Type: application/json" \
-                "$FIRESTORE_PRODUCT_POST_URL" \
-                -d "$REQUEST_BODY" || exit 1
-              echo "Document created with POST."
-             fi    
         }
 
         update_snippets_by_json_file() {
-            jq -c '.documents[]' "$JSON_FILE" | while read -r document; do
-              NAME=$(echo -E "$document" | jq -r '.name' | sed "s|$FIRESTORE_TEST_SNIPPETS_COLLECTION|$FIRESTORE_PRODUCT_SNIPPETS_COLLECTION|")
-              FIELDS=$(echo -E "$document" | jq -c '.fields')
+          local SNIPPET_NAME="$1"
+            
+          PRODUCT_SNIPPET_ID="${SNIPPET_NAME}_id"
+          PRODUCT_SNIPPET_ID_VALUE=${!PRODUCT_SNIPPET_ID}
 
-              echo "name: $NAME"
-              echo "field: $FIELDS"
+          PRODUCT_SNIPPET_GET_PATCH_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/snippets/$PRODUCT_SNIPPET_ID_VALUE/versions/$MIN_IOS_VERSION"
+          PRODUCT_SNIPPET_POST_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/snippets/$PRODUCT_SNIPPET_ID_VALUE/versions?documentId=$MIN_IOS_VERSION"
 
-              update_snippet $NAME $FIELDS
-            done
+          echo "[RESPONSE_JSON_FILE]"
+          cat "$JSON_FILE"
+
+          FIELDS=$(jq -c '.fields' "$JSON_FILE")
+
+          echo "FIELDS"
+          echo "$FIELDS"
+
+          REQUEST_BODY=$(jq -n --argjson fields "$FIELDS" '{
+            "fields": $fields
+          }')
+
+
+          echo "PATCH URL: $PRODUCT_SNIPPET_GET_PATCH_URL"
+          echo "POST URL: $PRODUCT_SNIPPET_POST_URL"
+
+          echo "REQUEST_BODY"
+          echo "$REQUEST_BODY" | jq .
+
+          STATUS=$(curl -X GET \
+            -o /dev/null \
+            -w "%{http_code}" \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            "$PRODUCT_SNIPPET_GET_PATCH_URL")
+
+          if [ "$STATUS" -eq 200 ]; then
+            patch_snippet_to_product "$PRODUCT_SNIPPET_GET_PATCH_URL" "$REQUEST_BODY"
+          else
+            post_snippet_to_product "$PRODUCT_SNIPPET_POST_URL" "$REQUEST_BODY"
+          fi    
         } 
 
         migrate_snippet() {
           local SNIPPET_NAME="$1"
-
           make_test_response_json_file $SNIPPET_NAME
-          update_snippets_by_json_file
+          update_snippets_by_json_file $SNIPPET_NAME
         } 
 
-        # Exit action if SNIPPET_INPUT is Empty
-        if [ -z "$SNIPPET_INPUT" ]; then 
+        # Exit action if CHANGED_FILES is Empty
+        if [ -z "$CHANGED_FILES" ]; then 
           exit 0 
         fi
 
-        echo -e "$SNIPPET_INPUT" | while read -r SNIPPET_NAME; do 
+        IFS='\'
+
+        for FILE in $CHANGED_FILES; do
+          SNIPPET_NAME=$(echo "$FILE" | sed -E 's|.*/||; s|\.swift$||' | awk '{print tolower(substr($0,1,1)) substr($0,2)}')
+          
+          echo "SNIPPET_NAME: $SNIPPET_NAME"
           migrate_snippet $SNIPPET_NAME
         done
      
