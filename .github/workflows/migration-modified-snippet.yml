@@ -4,6 +4,7 @@ on:
   pull_request: 
     types:
       - closed
+  workflow_dispatch:
 
 jobs:
   build:
@@ -19,15 +20,6 @@ jobs:
       
     steps:
     - uses: actions/checkout@v4
-
-    - name: Check for the existence of modified files
-      run: |
-        CHANGED_FILES=$(git diff --name-only origin/main $GITHUB_SHA | grep "^PageHub/Sources/Snippet" || true)
-
-        if [ -n "$CHANGED_FILES" ]; then 
-          echo "No modified files detected in PageHub/Sources/Snippet. Exiting"
-          exit 0
-        fi
     
     - name: Install required SDKs
       uses: ./.github/actions/install-sdk
@@ -57,26 +49,20 @@ jobs:
         )
 
         CHANGED_FILES=$(echo "$CHANGED_FILES" | tr '\n' '\\')
-        
-        SNIPPET_INPUT=""
-        for FILE in $CHANGED_FILES; do
-          SNIPPET=$(echo "$FILE" | sed -E 's|.*/||; s|\.swift$||' | awk '{print tolower(substr($0,1,1)) substr($0,2)}')
-          SNIPPET_INPUT="${SNIPPET_INPUT}\n${SNIPPET}"
-        done
-        
-        echo "SNIPPET_INPUT=$SNIPPET_INPUT" >> $GITHUB_ENV
+        echo "CHANGED_FILES=${{ github.event.inputs.FILE_PATHS }}" >> $GITHUB_ENV
 
     - name: Set up Product Snippet ID to GITHUB_ENV
       uses: ./.github/actions/set-snippet-id
       with:
-        FILES: ${{ env.CHANGED_FILES }}
+        FILES: ${{ env.CHANGED_FILES }} 
         USE_TEST_COLLECTION: "n"
-
+  
     - name: Set up Test Snippet ID to GITHUB_ENV
       uses: ./.github/actions/set-snippet-id
       with:
         FILES: ${{ env.CHANGED_FILES }}
         USE_TEST_COLLECTION: "y"
-        
+  
     - name: Migrate Snippets
       uses: ./.github/actions/migration-snippet
+  
