@@ -5,8 +5,8 @@ inputs:
     description: "A one-line string containing file paths to upload to Firestore, separated by backslashes."
     example: "PageHub/A.swift\PageHub/B.swift"
     required: true 
-  USE_TEST_COLLECTION:
-    description: "Value needed to distinguish the snippet ID suffix. Accepts 'y' or 'n'."
+  COLLECTION: 
+    description: "Collection target to search Snippet ID"
     required: true
 
 runs:
@@ -18,23 +18,9 @@ runs:
         ACCESS_TOKEN: ${{ env.ACCESS_TOKEN }}
         FIREBASE_PROJECT_ID: ${{ env.FIREBASE_PROJECT_ID }}
         FILES: ${{ inputs.FILES }}
-        USE_TEST_COLLECTION: ${{ inputs.USE_TEST_COLLECTION }}
+        COLLECTION: ${{ inputs.COLLECTION }}
 
       run: |
-
-        configure_variables() {
-          if [ "$USE_TEST_COLLECTION" = "y" ]; then
-            COLLECTION="testSnippetMappings"
-            ID_SUFFIX="testId"
-          elif [ "$USE_TEST_COLLECTION" = "n" ]; then
-            COLLECTION="snippetMappings"
-            ID_SUFFIX="id"
-          else 
-            echo "Invalid value for USE_TEST_COLLECTION. Must be 'y' or 'n'."
-            exit 1
-          fi
-        }
-
         generate_and_set_snippet_id() {
           local SNIPPET_NAME=$1
           
@@ -63,7 +49,7 @@ runs:
           )
           
           SNIPPET_ID=$(echo "$RESPONSE" | jq -r '.fields.id.stringValue')
-          SNIPPET_VARIABLE_NAME="${SNIPPET_NAME}_${ID_SUFFIX}"
+          SNIPPET_VARIABLE_NAME="${SNIPPET_NAME}_id"
           
           add_to_github_env "$SNIPPET_VARIABLE_NAME" "$SNIPPET_ID"
         }
@@ -90,7 +76,7 @@ runs:
            
           if [ "$HTTP_STATUS" -eq 200 ]; then 
             SNIPPET_ID=$(echo "$RESPONSE" | jq -r '.fields.id.stringValue')
-            SNIPPET_VARIABLE_NAME="${SNIPPET_NAME}_${ID_SUFFIX}"
+            SNIPPET_VARIABLE_NAME="${SNIPPET_NAME}_id"
             add_to_github_env "$SNIPPET_VARIABLE_NAME" "$SNIPPET_ID"
             
           elif [ "$HTTP_STATUS" -eq 404 ]; then
@@ -103,9 +89,6 @@ runs:
         }
         
         IFS='\'
-        
-        configure_variables
-
         for FILE in $FILES; do
           if [ -f "$FILE" ]; then
             set_id_of_snippet $FILE

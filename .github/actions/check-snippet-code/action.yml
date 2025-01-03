@@ -23,6 +23,7 @@ runs:
       run: |
         VISITED_SNIPPETS="visitied.snippets.txt"
         touch $VISITED_SNIPPETS
+      
 
         # Define a function to process snippets recursively
         process_snippet() {
@@ -36,7 +37,7 @@ runs:
           # Mark the snippet as visited
           echo "$SNIPPET" >> "$VISITED_SNIPPETS"
 
-          SNIPPET_ID_VARIABLE=${SNIPPET}_testId
+          SNIPPET_ID_VARIABLE=${SNIPPET}_id
           SNIPPET_ID=${!SNIPPET_ID_VARIABLE}
 
           SNIPPET_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$SNIPPET_ID/versions/$MIN_IOS_VERSION"

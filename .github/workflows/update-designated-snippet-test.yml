@@ -9,10 +9,6 @@ on:
       MIN_IOS_VERSION:
         description: 'The minimum iOS version for the updated snippet to be applied'
         required: true
-      USE_TEST_COLLECTION:
-        description: "Value needed to distinguish the snippet ID suffix. Accepts 'y' or 'n'."
-        required: true
-        
 
 jobs:
   build:
@@ -50,13 +46,12 @@ jobs:
       uses: ./.github/actions/set-snippet-id
       with:
         FILES: ${{ github.event.inputs.SNIPPET_PATH }}
-        USE_TEST_COLLECTION: ${{ github.event.inputs.USE_TEST_COLLECTION }}
+        COLLECTION: "testSnippetMappings"
 
     - name: Update Snippets to Firestore
       uses: ./.github/actions/upload-snippets-to-firestore 
       with: 
         FILES: ${{ github.event.inputs.SNIPPET_PATH }}
-        USE_TEST_COLLECTION: ${{ github.event.inputs.SNIPPET_PATH }}
 
     - name: Set Up Environment Variables to Check Snippet Codes
       run: |

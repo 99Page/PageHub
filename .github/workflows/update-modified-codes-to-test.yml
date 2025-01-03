@@ -30,7 +30,6 @@ jobs:
     - name: Check for the existence of modified files
       run: |
         git fetch origin main
-        
         CHANGED_FILES=$(
           git diff \
             --name-only \
@@ -92,13 +91,12 @@ jobs:
       uses: ./.github/actions/set-snippet-id
       with:
         FILES: ${{ env.CHANGED_FILES }}
-        USE_TEST_COLLECTION: "y"
+        COLLECTION: "testSnippetMappings"
 
     - name: Update Snippet Codes
       uses: ./.github/actions/upload-snippets-to-firestore
       with:
         FILES: ${{ env.CHANGED_FILES }}
-        USE_TEST_COLLECTION: "y"
 
     - name: Set Up Environment Values for Check Snippet Code
       run: |

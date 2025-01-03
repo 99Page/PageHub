@@ -46,17 +46,6 @@ jobs:
         echo "FIRESTORE_PRODUCT_SNIPPETS_COLLECTION=$FIRESTORE_PRODUCT_SNIPPETS_COLLECTION" >> $GITHUB_ENV
           
         git fetch origin   
-
-
-        CHANGED_FILES=$(
-          git diff \
-            --name-only \
-            --diff-filter=d \
-            origin/main $GITHUB_SHA | \
-            grep "^PageHub/Sources/Snippet" || true
-        )
-
-        CHANGED_FILES=$(echo "$CHANGED_FILES" | tr '\n' '\\')
         
         SNIPPET_INPUT=""
         for FILE in $CHANGED_FILES; do
@@ -65,18 +54,6 @@ jobs:
         done
         
         echo "SNIPPET_INPUT=$SNIPPET_INPUT" >> $GITHUB_ENV
-
-    - name: Set up Product Snippet ID to GITHUB_ENV
-      uses: ./.github/actions/set-snippet-id
-      with:
-        FILES: ${{ env.CHANGED_FILES }}
-        USE_TEST_COLLECTION: "n"
-
-    - name: Set up Test Snippet ID to GITHUB_ENV
-      uses: ./.github/actions/set-snippet-id
-      with:
-        FILES: ${{ env.CHANGED_FILES }}
-        USE_TEST_COLLECTION: "y"
         
     - name: Migrate Snippets
       uses: ./.github/actions/migration-snippet

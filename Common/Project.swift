@@ -61,6 +61,7 @@ let project = Project(
     packages: [
         .remote(url: tcaURL, requirement: tcaVersion)
     ],
+    settings: nil,
     targets: [target]
 )
 
