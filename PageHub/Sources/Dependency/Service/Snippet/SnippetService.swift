@@ -23,18 +23,22 @@ struct SnippetService {
 extension SnippetService: DependencyKey {
     static var liveValue: SnippetService {
         SnippetService { feature in
-            let snippetMapPath = "testSnippetMappings/\(feature.rawValue)"
+            let initialMappingPath = InitialCollection.snippetMappings.path
+            let snippetMapPath = "\(initialMappingPath)/\(feature.rawValue)"
             let snippetMapResponse = try await DocFetcher.fetch(path: snippetMapPath, type: SnippetMapResponse.self)
             
-            let snippetPath = "testSnippets/\(snippetMapResponse.id)"
+            let initialSnippetPath = InitialCollection.snippets.path
+            let snippetPath = "\(initialSnippetPath)/\(snippetMapResponse.id)"
             let snippetResponse = try await DocFetcher.fetch(path: snippetPath, type: SnippetResponse.self)
             
             return snippetResponse
         } fetchCode: { [self] snippet, version, visited in
-            let snippetMapPath = "testSnippetMappings/\(snippet)"
+            let initialMappingPath = InitialCollection.snippetMappings.path
+            let snippetMapPath = "\(initialMappingPath)/\(snippet)"
             let snippetMapResponse = try await DocFetcher.fetch(path: snippetMapPath, type: SnippetMapResponse.self)
             
-            let codePath = "testSnippets/\(snippetMapResponse.id)/versions/\(version)"
+            let initialSnippetPath = InitialCollection.snippets.path
+            let codePath = "\(initialSnippetPath)/\(snippetMapResponse.id)/versions/\(version)"
             let codeResponse = try await DocFetcher.fetch(path: codePath, type: FeatureCodeResponse.self)
             
             var result = [codeResponse]

@@ -14,7 +14,9 @@ let infoPlist: [String: Plist.Value] = [
     ],
     "NSAppTransportSecurity": [
         "NSAllowsArbitraryLoads": true
-    ]
+    ],
+    "SnippetMappingsCollection": .string("$(SNIPPET_MAPPINGS_COLLECTION)"),
+    "SnippetsCollection": .string("$(SNIPPETS_COLLECTION)")
 ]
 
 
@@ -83,6 +85,24 @@ let project = Project(
     settings: .settings(
         base: [
             "SWIFT_VERSION": "6.0"
+        ],
+        configurations: [
+            .debug(
+                name: "Debug",
+                settings: [
+                    "SNIPPET_MAPPINGS_COLLECTION": "testSnippetMappings",
+                    "SNIPPETS_COLLECTION": "testSnippets"
+                ],
+                xcconfig: nil
+            ),
+            .release(
+                name: "Release",
+                settings: [
+                    "SNIPPET_MAPPINGS_COLLECTION": "snippetMappings",
+                    "SNIPPETS_COLLECTION": "snippets"
+                ],
+                xcconfig: nil
+            )
         ]
     ),
     targets: [target, testTarget]

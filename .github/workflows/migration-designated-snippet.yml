@@ -3,8 +3,8 @@ name: Designated Snippet Migration
 on:
   workflow_dispatch:
     inputs:
-      SNIPPET_INPUT:
-        Description: The snippet name is saved as a document in the test database. Be careful with case sensitivity. Multiple snippets can be included by separating them with \n.
+      FILE_PATHS:
+        description: The snippet’s paths. Multiple paths can be included by separating them with backslashes ('\').
         required: true 
       MIN_IOS_VERSION:
         description: 'The minimum iOS version for the updated snippet to be applied'
@@ -39,11 +39,23 @@ jobs:
         echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
         
         echo "MIN_IOS_VERSION=${{ github.event.inputs.MIN_IOS_VERSION }}" >> $GITHUB_ENV
-        echo "SNIPPET_INPUT=${{ github.event.inputs.SNIPPET_INPUT }}" >> $GITHUB_ENV
+        echo "CHANGED_FILES=${{ github.event.inputs.FILE_PATHS }}" >> $GITHUB_ENV
 
         echo "FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID" >> $GITHUB_ENV
         echo "FIRESTORE_TEST_SNIPPETS_COLLECTION=$FIRESTORE_TEST_SNIPPETS_COLLECTION" >> $GITHUB_ENV
         echo "FIRESTORE_PRODUCT_SNIPPETS_COLLECTION=$FIRESTORE_PRODUCT_SNIPPETS_COLLECTION" >> $GITHUB_ENV
+
+    - name: Set up Product Snippet ID to GITHUB_ENV
+      uses: ./.github/actions/set-snippet-id
+      with:
+        FILES: ${{ env.CHANGED_FILES }} 
+        USE_TEST_COLLECTION: "n"
+
+    - name: Set up Test Snippet ID to GITHUB_ENV
+      uses: ./.github/actions/set-snippet-id
+      with:
+        FILES: ${{ env.CHANGED_FILES }}
+        USE_TEST_COLLECTION: "y"
 
     - name: Migrate Snippets
       uses: ./.github/actions/migration-snippet
