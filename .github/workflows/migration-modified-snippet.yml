@@ -32,10 +32,18 @@ jobs:
         ACCESS_TOKEN=$(./google-cloud-sdk/bin/gcloud auth print-access-token)
         echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
         
-        echo "MIN_IOS_VERSION=${{ github.event.inputs.MIN_IOS_VERSION }}" >> $GITHUB_ENV
         echo "FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID" >> $GITHUB_ENV
         echo "FIRESTORE_TEST_SNIPPETS_COLLECTION=$FIRESTORE_TEST_SNIPPETS_COLLECTION" >> $GITHUB_ENV
         echo "FIRESTORE_PRODUCT_SNIPPETS_COLLECTION=$FIRESTORE_PRODUCT_SNIPPETS_COLLECTION" >> $GITHUB_ENV
+
+        # Extract the line containing '.iOS(...)' from Project.swift
+        # Example output: .iOS("18.0")
+        IOS_LINE=$(grep -o '.iOS(.*)' PageHub/Project.swift)
+
+        # Extract the version number in the format 'number.number' from the line
+        # Example input: .iOS("18.0"), output: 18.0
+        MIN_IOS_VERSION=$(echo "$IOS_LINE" | grep -o '[0-9]\+\.[0-9]\+')
+        echo "MIN_IOS_VERSION=$MIN_IOS_VERSION" >> $GITHUB_ENV
           
         git fetch origin main
         
