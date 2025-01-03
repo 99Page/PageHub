@@ -37,9 +37,8 @@ jobs:
         echo "FIRESTORE_TEST_SNIPPETS_COLLECTION=$FIRESTORE_TEST_SNIPPETS_COLLECTION" >> $GITHUB_ENV
         echo "FIRESTORE_PRODUCT_SNIPPETS_COLLECTION=$FIRESTORE_PRODUCT_SNIPPETS_COLLECTION" >> $GITHUB_ENV
           
-        git fetch origin   
-
-
+        git fetch origin main
+        
         CHANGED_FILES=$(
           git diff \
             --name-only \
@@ -49,7 +48,15 @@ jobs:
         )
 
         CHANGED_FILES=$(echo "$CHANGED_FILES" | tr '\n' '\\')
-        echo "CHANGED_FILES=${{ github.event.inputs.FILE_PATHS }}" >> $GITHUB_ENV
+
+        echo "Changed files"
+        echo "$CHANGED_FILES"
+        echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
+
+        if [ -z "$CHANGED_FILES" ]; then 
+          echo "No modified files detected in PageHub/Sources/Snippet. Exiting"
+          exit 0
+        fi
 
     - name: Set up Product Snippet ID to GITHUB_ENV
       uses: ./.github/actions/set-snippet-id
