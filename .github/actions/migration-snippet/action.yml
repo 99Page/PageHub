@@ -118,12 +118,14 @@ runs:
 
         update_snippet() {
           local SNIPPET_NAME="$1"
+
+          echo "Update Snippet"
             
           PRODUCT_SNIPPET_ID="${SNIPPET_NAME}_id"
           PRODUCT_SNIPPET_ID_VALUE=${!PRODUCT_SNIPPET_ID}
 
-          PRODUCT_SNIPPET_GET_PATCH_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/snippets?documentId=$PRODUCT_SNIPPET_ID_VALUE"
-          PRODUCT_SNIPPET_POST_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/snippets/$PRODUCT_SNIPPET_ID_VALUE"
+          PRODUCT_SNIPPET_GET_PATCH_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/snippets/$PRODUCT_SNIPPET_ID_VALUE"
+          PRODUCT_SNIPPET_POST_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/snippets?documentId=$PRODUCT_SNIPPET_ID_VALUE"
 
           echo "[RESPONSE_JSON_FILE]"
           cat "$SNIPPET_JSON"
@@ -163,6 +165,8 @@ runs:
           local SNIPPET_ID="${SNIPPET_NAME}_testId"
           local SNIPPET_ID_VALUE=${!SNIPPET_ID}
 
+          echo "Make Snippet JSON"
+
           TEST_SNIPPET_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/testSnippets/$SNIPPET_ID_VALUE"
 
           echo "TEST_SNIPPET_URL: $TEST_SNIPPET_URL"
@@ -176,6 +180,9 @@ runs:
 
         migrate_snippet() {
           local SNIPPET_NAME="$1"
+
+          echo "**Migrate snippet**"
+
           make_snippet_json $SNIPPET_NAME
           update_snippet $SNIPPET_NAME
         }
