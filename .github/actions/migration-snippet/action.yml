@@ -1,4 +1,4 @@
-name: "Migration Snippets"
+name: "Migrating Snippet"
 description: "Migration Snippets: Transitioning from Test to Production Service"
 
 runs:
@@ -19,8 +19,9 @@ runs:
       run: |
     
         JSON_FILE="response.json"
+        SNIPPET_JSON="version.json"
 
-        post_snippet_to_product() {
+        post_to_product() {
           local URL="$1"
           local REQUEST_BODY="$2"
 
@@ -36,17 +37,19 @@ runs:
           echo "Document created with POST."
         }
 
-        patch_snippet_to_product() {
+        patch_product_data() {
           local URL="$1"
           local REQUEST_BODY="$2"
 
           echo "Attempting a PATCH request."
+
           curl -X PATCH \
             -f \
             -H "Authorization: Bearer $ACCESS_TOKEN" \
             -H "Content-Type: application/json" \
             "$URL" \
             -d "$REQUEST_BODY" || exit 1
+            
           echo "Document updated with PATCH."
         }
 
@@ -55,13 +58,13 @@ runs:
           local SNIPPET_ID="${SNIPPET_NAME}_testId"
           local SNIPPET_ID_VALUE=${!SNIPPET_ID}
 
-          TEST_SNIPPET_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/testSnippets/$SNIPPET_ID_VALUE/versions/$MIN_IOS_VERSION"
+          TEST_SNIPPET_VERSION_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/testSnippets/$SNIPPET_ID_VALUE/versions/$MIN_IOS_VERSION"
 
-          echo "TEST_SNIPPET_URL: $TEST_SNIPPET_URL"
+          echo "TEST_SNIPPET_VERSION_URL: $TEST_SNIPPET_VERSION_URL"
 
           curl -X GET \
             -H "Authorization: Bearer $ACCESS_TOKEN" \
-            "$TEST_SNIPPET_URL" \
+            "$TEST_SNIPPET_VERSION_URL" \
             -o $JSON_FILE \
             -f || exit 1
         }
@@ -101,17 +104,100 @@ runs:
             "$PRODUCT_SNIPPET_GET_PATCH_URL")
 
           if [ "$STATUS" -eq 200 ]; then
-            patch_snippet_to_product "$PRODUCT_SNIPPET_GET_PATCH_URL" "$REQUEST_BODY"
+            patch_product_data "$PRODUCT_SNIPPET_GET_PATCH_URL" "$REQUEST_BODY"
           else
-            post_snippet_to_product "$PRODUCT_SNIPPET_POST_URL" "$REQUEST_BODY"
+            post_to_product "$PRODUCT_SNIPPET_POST_URL" "$REQUEST_BODY"
           fi    
         } 
 
-        migrate_snippet() {
+        migrate_versioned_snippet() {
           local SNIPPET_NAME="$1"
+
+          echo "::group::Migrating versioned snippet: $SNIPPET_NAME"
           make_test_response_json_file $SNIPPET_NAME
           update_snippets_by_json_file $SNIPPET_NAME
+          echo "::endgroup::"
+        }
+
+        update_snippet() {
+          local SNIPPET_NAME="$1"
+
+          echo "Update Snippet"
+            
+          PRODUCT_SNIPPET_ID="${SNIPPET_NAME}_id"
+          PRODUCT_SNIPPET_ID_VALUE=${!PRODUCT_SNIPPET_ID}
+
+          PRODUCT_SNIPPET_GET_PATCH_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/snippets/$PRODUCT_SNIPPET_ID_VALUE"
+          PRODUCT_SNIPPET_POST_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/snippets?documentId=$PRODUCT_SNIPPET_ID_VALUE"
+
+          echo "[RESPONSE_JSON_FILE]"
+          cat "$SNIPPET_JSON"
+
+          FIELDS=$(jq -c '.fields' "$SNIPPET_JSON")
+
+          echo "FIELDS"
+          echo "$FIELDS"
+
+          REQUEST_BODY=$(jq -n --argjson fields "$FIELDS" '{
+            "fields": $fields
+          }')
+
+
+          echo "PATCH URL: $PRODUCT_SNIPPET_GET_PATCH_URL"
+          echo "POST URL: $PRODUCT_SNIPPET_POST_URL"
+
+          echo "REQUEST_BODY"
+          echo "$REQUEST_BODY" | jq .
+
+          STATUS=$(curl -X GET \
+            -o /dev/null \
+            -w "%{http_code}" \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            "$PRODUCT_SNIPPET_GET_PATCH_URL")
+
+          if [ "$STATUS" -eq 200 ]; then
+            patch_product_data "$PRODUCT_SNIPPET_GET_PATCH_URL" "$REQUEST_BODY"
+          else
+            post_to_product "$PRODUCT_SNIPPET_POST_URL" "$REQUEST_BODY"
+          fi    
         } 
+
+        make_snippet_json() {
+          local SNIPPET_NAME="$1"
+          
+          local SNIPPET_ID="${SNIPPET_NAME}_testId"
+          local SNIPPET_ID_VALUE=${!SNIPPET_ID}
+
+          echo "Make Snippet JSON"
+
+          TEST_SNIPPET_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/testSnippets/$SNIPPET_ID_VALUE"
+
+          echo "TEST_SNIPPET_URL: $TEST_SNIPPET_URL"
+
+          curl -X GET \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            "$TEST_SNIPPET_URL" \
+            -o $SNIPPET_JSON \
+            -f
+
+          if [ $? -ne 0]; then 
+            echo "::error::Failed to fetch snippet from $TEST_SNIPPET_URL. Please check the URL or the access token."
+            exit 1
+          else 
+            echo "::notice::Snippet successfully fetched and saved to $SNIPPET_JSON."
+          fi
+        }
+
+        migrate_snippet() {
+          local SNIPPET_NAME="$1"
+
+          echo "::group::Migrating snippet: $SNIPPET_NAME"
+
+          make_snippet_json $SNIPPET_NAME
+          update_snippet $SNIPPET_NAME
+
+          echo "::endgroup::"
+        }
 
         # Exit action if CHANGED_FILES is Empty
         if [ -z "$CHANGED_FILES" ]; then 
@@ -124,6 +210,8 @@ runs:
           SNIPPET_NAME=$(echo "$FILE" | sed -E 's|.*/||; s|\.swift$||' | awk '{print tolower(substr($0,1,1)) substr($0,2)}')
           
           echo "SNIPPET_NAME: $SNIPPET_NAME"
+
           migrate_snippet $SNIPPET_NAME
+          migrate_versioned_snippet $SNIPPET_NAME
         done
      
