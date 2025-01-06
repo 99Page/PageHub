@@ -122,7 +122,7 @@ runs:
           PRODUCT_SNIPPET_ID="${SNIPPET_NAME}_id"
           PRODUCT_SNIPPET_ID_VALUE=${!PRODUCT_SNIPPET_ID}
 
-          PRODUCT_SNIPPET_GET_PATCH_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/snippets/$PRODUCT_SNIPPET_ID_VALUE"
+          PRODUCT_SNIPPET_GET_PATCH_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/snippets?documentId=$PRODUCT_SNIPPET_ID_VALUE"
           PRODUCT_SNIPPET_POST_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/snippets/$PRODUCT_SNIPPET_ID_VALUE"
 
           echo "[RESPONSE_JSON_FILE]"
