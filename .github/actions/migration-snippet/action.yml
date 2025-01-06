@@ -130,7 +130,7 @@ runs:
           echo "[RESPONSE_JSON_FILE]"
           cat "$SNIPPET_JSON"
 
-          FIELDS=$(jq -c '.fields' "$JSON_FILE")
+          FIELDS=$(jq -c '.fields' "$SNIPPET_JSON")
 
           echo "FIELDS"
           echo "$FIELDS"
@@ -181,10 +181,12 @@ runs:
         migrate_snippet() {
           local SNIPPET_NAME="$1"
 
-          echo "**Migrate snippet**"
+          echo "::group::Migrating snippet: $SNIPPET_NAME"
 
           make_snippet_json $SNIPPET_NAME
           update_snippet $SNIPPET_NAME
+
+          echo "::endgroup::"
         }
 
         # Exit action if CHANGED_FILES is Empty
