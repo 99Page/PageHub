@@ -1,4 +1,4 @@
-name: "Migration Snippets"
+name: "Migrating Snippet"
 description: "Migration Snippets: Transitioning from Test to Production Service"
 
 runs:
@@ -112,8 +112,11 @@ runs:
 
         migrate_versioned_snippet() {
           local SNIPPET_NAME="$1"
+
+          echo "::group::Migrating versioned snippet: $SNIPPET_NAME"
           make_test_response_json_file $SNIPPET_NAME
           update_snippets_by_json_file $SNIPPET_NAME
+          echo "::endgroup::"
         }
 
         update_snippet() {
@@ -175,7 +178,14 @@ runs:
             -H "Authorization: Bearer $ACCESS_TOKEN" \
             "$TEST_SNIPPET_URL" \
             -o $SNIPPET_JSON \
-            -f || exit 1
+            -f
+
+          if [ $? -ne 0]; then 
+            echo "::error::Failed to fetch snippet from $TEST_SNIPPET_URL. Please check the URL or the access token."
+            exit 1
+          else 
+            echo "::notice::Snippet successfully fetched and saved to $SNIPPET_JSON."
+          fi
         }
 
         migrate_snippet() {
