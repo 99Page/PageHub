@@ -79,9 +79,12 @@ runs:
 
             DOCUMENT=$(echo "$FILE" | sed -E 's|.*/||; s|\.swift$||' | awk '{print tolower(substr($0,1,1)) substr($0,2)}')
 
+            echo "::group::Testing & Compile: $DOCUMENT"
+            
             process_snippet $DOCUMENT
 
             echo "[Testing.swift file] $(cat Testing.swift)"
+
 
             swiftc Testing.swift -o TestingExecutable
 
@@ -97,6 +100,8 @@ runs:
               echo "❌ Execution failed. Stopping CI/CD."
               exit 1
             fi
+
+            echo "::endgroup::"
 
           else
             echo "File $FILE does not exist."

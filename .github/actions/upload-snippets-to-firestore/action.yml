@@ -101,6 +101,8 @@ runs:
             FIRESTORE_READ_UPDATE_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$SNIPPET_ID/versions/$MIN_IOS_VERSION"
             FIRESTORE_CREATE_URL="https://firestore.googleapis.com/v1/projects/$FIREBASE_PROJECT_ID/databases/(default)/documents/$FIRESTORE_TEST_SNIPPETS_COLLECTION/$SNIPPET_ID/versions?documentId=$MIN_IOS_VERSION"
 
+            echo "::group::Update: $DOCUMENT"
+            
             echo "URL: "$FIRESTORE_READ_UPDATE_URL""
 
             HTTP_RESPONSE=$(curl -s \
@@ -119,6 +121,8 @@ runs:
             else
               post_snippet "$CODE" "$SUBSNIPPET_VALUES"
             fi
+
+            echo "::endgroup::"
           else
             echo "❌ File $FILE does not exist."
           fi
