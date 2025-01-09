@@ -3,12 +3,10 @@ name: Upload to TestFlight
 on:
   pull_request: 
     types:
-      - opened
       - closed
 
 jobs:
   build:
-    # if: github.event.pull_request.merged == true
     runs-on: macOS-15
 
     steps:
