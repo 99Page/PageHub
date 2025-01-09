@@ -12,13 +12,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install Tuist
+    - name: Create Workspace & Project
       run: |
-        curl -Ls https://install.tuist.io | bash
-        echo 'export PATH="$HOME/.tuist/bin:$PATH"' >> $GITHUB_ENV
-
-    - name: Generate Tuist project
-      run: tuist generate
+        curl -fsSL https://raw.githubusercontent.com/tuist/mise/main/install.sh | bash
+        echo 'export PATH="$HOME/.mise/bin:$PATH"' >> $GITHUB_ENV
+        mise install tuist
+        mise use tuist@latest
+        tuist generate
 
     - name: Upload to TestFlight
       env: 
