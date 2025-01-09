@@ -8,9 +8,8 @@ on:
 
 jobs:
   build:
-    if: github.event.pull_request.merged == true
+    # if: github.event.pull_request.merged == true
     runs-on: macOS-15
-
 
     steps:
     - uses: actions/checkout@v4
