@@ -3,7 +3,7 @@ name: Upload to TestFlight
 on:
   pull_request: 
     types:
-      - closed
+      - opened
 
 jobs:
   build:
