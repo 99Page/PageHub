@@ -5,7 +5,8 @@ let infoPlist: [String: Plist.Value] = [
     "CFBundleShortVersionString": "1.0",
     "CFBundleVersion": "1",
     "UIMainStoryboardFile": "",
-    "UILaunchStoryboardName": "LaunchScreen",
+    "UILaunchStoryboardName": "",
+    "UIRequiresFullScreen": true,
     "CFBundleURLTypes": [
         "CFBundleTypeRole": "Editor",
         "CFBundleURLSchemes": [
@@ -29,6 +30,15 @@ let destinations: Destinations = .iOS
 let appName = "PageHub"
 let appBundleId = "com.pagehub.app"
 
+let targetSettings: SettingsDictionary = [
+    "DEVELOPMENT_TEAM": "MAU8HFALP8",
+    "CODE_SIGN_IDENTITY": "Apple Development",
+    "CODE_SIGN_STYLE": "Automatic"
+]
+
+let tcaURL = "https://github.com/pointfreeco/swift-composable-architecture.git"
+let tcaVersion: Package.Requirement = .upToNextMinor(from: "1.17")
+
 let target = Target.target(
     name: appName,
     destinations: destinations,
@@ -42,13 +52,18 @@ let target = Target.target(
         "../Documentation/**"
     ],
     dependencies: [
-        .project(target: "Common", path: "../Common"),
+        .package(product: "ComposableArchitecture"),
         .package(product: "FirebaseCore"),
         .package(product: "FirebaseFirestore"),
         .package(product: "GoogleSignIn"),
         .package(product: "FirebaseAuth"),
         .package(product: "HighlightSwift")
-    ]
+    ],
+    settings: .settings(
+        base: targetSettings,
+        configurations: [],
+        defaultSettings: .recommended
+    )
 )
 
 let testTarget = Target.target(
@@ -59,8 +74,7 @@ let testTarget = Target.target(
     deploymentTargets: deploymentTarget,
     sources: ["Tests/**"],
     dependencies: [
-        .project(target: "Common", path: "../Common"),
-        .target(name: "PageHub"),
+        .target(name: appName)
     ]
 )
 
@@ -80,7 +94,8 @@ let project = Project(
     packages: [
         .remote(url: firebaseURL, requirement: firebaseVersion),
         .remote(url: highlightSwiftURL, requirement: hightSwiftVersion),
-        .remote(url: googleSignInURL, requirement: googleSignInVersion)
+        .remote(url: googleSignInURL, requirement: googleSignInVersion),
+        .remote(url: tcaURL, requirement: tcaVersion)
     ],
     settings: .settings(
         base: [
