@@ -23,10 +23,18 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 Description of what the lane does
 
-### ios custom_lane
+### ios development
 
 ```sh
-[bundle exec] fastlane ios custom_lane
+[bundle exec] fastlane ios development
+```
+
+
+
+### ios appstore
+
+```sh
+[bundle exec] fastlane ios appstore
 ```
 
 

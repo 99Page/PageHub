@@ -5,7 +5,8 @@ let infoPlist: [String: Plist.Value] = [
     "CFBundleShortVersionString": "1.0",
     "CFBundleVersion": "1",
     "UIMainStoryboardFile": "",
-    "UILaunchStoryboardName": "LaunchScreen",
+    "UILaunchStoryboardName": "",
+    "UIRequiresFullScreen": true,
     "CFBundleURLTypes": [
         "CFBundleTypeRole": "Editor",
         "CFBundleURLSchemes": [
