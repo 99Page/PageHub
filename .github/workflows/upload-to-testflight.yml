@@ -3,6 +3,7 @@ name: Upload to TestFlight
 on:
   pull_request: 
     types:
+      - opened
       - closed
 
 jobs:
@@ -14,7 +15,15 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Check for the existence of modified files
+    - name: Install Tuist
+      run: |
+        curl -Ls https://install.tuist.io | bash
+        echo 'export PATH="$HOME/.tuist/bin:$PATH"' >> $GITHUB_ENV
+
+    - name: Generate Tuist project
+      run: tuist generate
+
+    - name: Upload to TestFlight
       env: 
         APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
         APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
