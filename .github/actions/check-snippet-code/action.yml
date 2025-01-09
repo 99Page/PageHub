@@ -83,6 +83,8 @@ runs:
 
             echo "[Testing.swift file] $(cat Testing.swift)"
 
+            echo "::group::Testing & Compile: $DOCUMENT"
+
             swiftc Testing.swift -o TestingExecutable
 
             if [ $? -ne 0 ]; then
@@ -97,6 +99,8 @@ runs:
               echo "❌ Execution failed. Stopping CI/CD."
               exit 1
             fi
+
+            echo "::endgroup::"
 
           else
             echo "File $FILE does not exist."
