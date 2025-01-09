@@ -79,11 +79,12 @@ runs:
 
             DOCUMENT=$(echo "$FILE" | sed -E 's|.*/||; s|\.swift$||' | awk '{print tolower(substr($0,1,1)) substr($0,2)}')
 
+            echo "::group::Testing & Compile: $DOCUMENT"
+            
             process_snippet $DOCUMENT
 
             echo "[Testing.swift file] $(cat Testing.swift)"
 
-            echo "::group::Testing & Compile: $DOCUMENT"
 
             swiftc Testing.swift -o TestingExecutable
 
