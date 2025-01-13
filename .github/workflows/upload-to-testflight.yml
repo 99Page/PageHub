@@ -23,10 +23,9 @@ jobs:
         mise install tuist
         mise use tuist@latest
 
-        mise use -g tuist
-
         # Use tuist command
         mise exec -- tuist version
+        mise exec -- tuist generate
 
     - name: Upload to TestFlight
       env: 
