@@ -19,12 +19,11 @@ jobs:
         # Install mise
         curl https://mise.run | bash
 
-        # Add mise to PATH (for GitHub Actions environment)
-        eval "$(mise activate bash)"
-
         # Install Tuist and use the latest version
         mise install tuist
         mise use tuist@latest
+
+        mise use -g tuist
 
         # Use tuist command
         tuist --version
