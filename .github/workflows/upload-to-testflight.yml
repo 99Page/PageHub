@@ -26,10 +26,7 @@ jobs:
         mise use -g tuist
 
         # Use tuist command
-        tuist --version
-
-        # Generate Tuist project
-        tuist generate
+        mise exec -- tuist version
 
     - name: Upload to TestFlight
       env: 
