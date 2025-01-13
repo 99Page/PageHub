@@ -20,7 +20,7 @@ jobs:
         curl https://mise.run | bash
 
         # Add mise to PATH (for GitHub Actions environment)
-        echo "$HOME/.mise/bin" >> $GITHUB_PATH
+        echo "eval \"\$(/Users/runner/.local/bin/mise activate bash)\"" >> ~/.bashrc
 
         # Install Tuist and use the latest version
         mise install tuist
