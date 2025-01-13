@@ -26,6 +26,9 @@ jobs:
         mise install tuist
         mise use tuist@latest
 
+        # Find path of tuist
+        which tuist
+
         # Generate Tuist project
         tuist generate
 
