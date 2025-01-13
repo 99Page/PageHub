@@ -3,18 +3,31 @@ name: Upload to TestFlight
 on:
   pull_request: 
     types:
-      - closed
+      - opened
+      - synchronize
 
 jobs:
   build:
-    if: github.event.pull_request.merged == true
     runs-on: macOS-15
-
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Check for the existence of modified files
+    - name: Create Workspace & Project
+      run: |
+        
+        # Install mise
+        curl https://mise.run | bash
+
+        # Install Tuist and use the latest version
+        mise install tuist
+        mise use tuist@latest
+
+        # Use tuist command
+        mise exec -- tuist version
+        mise exec -- tuist generate
+
+    - name: Upload to TestFlight
       env: 
         APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
         APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
