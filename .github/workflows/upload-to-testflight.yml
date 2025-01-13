@@ -27,9 +27,8 @@ jobs:
         mise use tuist@latest
 
         # Find path of tuist
-        echo "??"
-        which tuist
-        echo "!!"
+        echo "mise doctor"
+        mise doctor
 
         # Generate Tuist project
         tuist generate
