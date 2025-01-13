@@ -48,8 +48,7 @@ let target = Target.target(
     infoPlist: .extendingDefault(with: infoPlist),
     sources: ["Sources/**"],
     resources: [
-        "Resources/**",
-        "../Documentation/**"
+        "Resources/**"
     ],
     dependencies: [
         .package(product: "ComposableArchitecture"),
